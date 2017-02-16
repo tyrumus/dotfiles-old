@@ -341,6 +341,36 @@ end)
 
 -- Tag underline
 tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = 1684, y = 1077, width = 34, height = 3, screen = 1, bg = "#4082f7", fg = "#fefefe"})
+taglineoldnum = 1
+
+-- X1: 1684; X2: 1718; X3: 1752; X4: 1788
+function animateToTag(num)
+	local t = timer({timeout = 0.01})
+	if num == 1 then
+		if tagline.x > 1684 then
+			--animate left
+			local dif = (tagline.x - 1684)
+		end
+	elseif num == 2 then
+		if tagline.x > 1718 then
+			-- animate left
+		else
+			-- animate right
+		end
+	elseif num == 3 then
+		if tagline.x > 1752 then
+			-- animate left
+		else
+			-- animate right
+		end
+	elseif num == 4 then
+		if tagline.x < 1788 then
+			-- animate right
+		end
+	end
+end
+
+
 
 tagline:connect_signal("button::press", function(mod,x,y,b)
     if b == 5 then awful.tag.viewidx(1)
