@@ -137,7 +137,7 @@ mymainmenu = awful.menu({ items = { { "Hotkeys", function() return false, hotkey
 
 -- Chromium OS widgets
 -- Sysmenu
-sysmenu = wibox({border_width = 0, ontop = true, visible = true, opacity = 1, type = "splash", x = 1920, y = 730, width = 240, height = 310, screen = 1, bg = "#232729",  fg = "#fefefe"})
+sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = 1920, y = 730, width = 240, height = 310, screen = 1, bg = "#232729",  fg = "#fefefe"})
 smopen = false
 smanim = false
 
@@ -233,36 +233,35 @@ end
 
 -- Audio output-related stuff
 
--- Volume slider
-vslider = wibox.widget.slider()
+local vslider = wibox.widget.slider()
 vslider.bar_shape = gears.shape.rounded_rect
-vslider.bar_height = 3
+vslider.bar_height = 2
 vslider.bar_color = beautiful.border_color
 vslider.bar_border_width = 0
 vslider.handle_color = beautiful.bg_focus
 vslider.handle_shape = gears.shape.circle
-vslider.handle_width = 20
+vslider.handle_width = 10
 vslider.handle_border_color = beautiful.border_color
 vslider.handle_border_width = 0
-vslider.value = 5
+vslider.value = audio.devices[audio.default].volume
 vslider.minimum = 1
-vslider.maximum = 10
-slcont = wibox.container.margin(vslider)
-slcont.forced_width = 20
-slcont.forced_height = 30
+vslider.maximum = 100
+vslider.forced_width = 150
+vslider.forced_height = 30
+local slmarg = wibox.container.margin(vslider,20,0,10)
 
-voltxt = wibox.widget.textbox()
-voltxt.text = tostring(vslider.value)
+local vtxt = wibox.widget.textbox("<span color='#aaa'>"..audio.devices[audio.default].volume.."%</span>")
+local vtxtmarg = wibox.container.margin(vtxt,10,0,10)
+local slcont = wibox.layout.fixed.horizontal(slmarg,vtxtmarg)
 
-t = timer({timeout = 0.01})
-t:connect_signal("timeout", function()
-    voltxt.text = tostring(vslider.value)
+vslider:connect_signal("property::value", function()
+    --emit signal for volumechange
+    vtxt.markup = "<span color='#aaa'>"..vslider.value.."%</span>"
 end)
-t:start()
 
 systray = wibox.widget.systray()
 systray:set_base_size(32)
-sysmenu.widget = wibox.layout.fixed.vertical(slcont,systray,voltxt)
+sysmenu.widget = wibox.layout.fixed.vertical(slcont,systray)
 
 -- App list dialog
 appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = 640, width = 250, height = 400, screen = 1, bg = "#232729", fg = "#fefefe"})
