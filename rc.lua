@@ -178,9 +178,12 @@ function toggleSysmenu()
 end
 
 -- Create a speakers/headset switch widget
-local switchphones = wibox.widget.imagebox(profileConfigPath.."newui/headphones.png", false)
-local switchspeakers = wibox.widget.imagebox(profileConfigPath.."newui/speakers.png", false)
+switchphones = wibox.widget.imagebox(profileConfigPath.."newui/headphones.png", false)
+switchspeakers = wibox.widget.imagebox(profileConfigPath.."newui/speakers.png", false)
 switchspeakers.opacity = 0
+local swlay = wibox.layout.stack()
+swlay:add(switchphones,switchspeakers)
+local swmarg = wibox.container.margin(swlay,8,0,13)
 
 -- positive factor gives phones to speakers, negative is opposite
 function animateSwitch(spkrtoph, factor, delay)
@@ -230,10 +233,6 @@ function toggleSound()
     myvolume:emit_signal("volumechange")
 end
 
-local sndstk = wibox.layout.stack()
-wibox.layout.stack:add(sndstk,switchphones)
-wibox.layout.stack:add(sndstk,switchspeakers)
-
 
 -- Audio output-related stuff
 
@@ -256,7 +255,7 @@ local slmarg = wibox.container.margin(vslider,20,0,10)
 
 local vtxt = wibox.widget.textbox("<span color='#aaa'>"..audio.devices[audio.default].volume.."%</span>")
 local vtxtmarg = wibox.container.margin(vtxt,10,0,10)
-local slcont = wibox.layout.fixed.horizontal(slmarg,vtxtmarg,sndstk)
+local slcont = wibox.layout.fixed.horizontal(slmarg,vtxtmarg,swmarg)
 
 vslider:connect_signal("property::value", function()
     --emit signal for volumechange
