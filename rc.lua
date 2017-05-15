@@ -57,11 +57,6 @@ editor_cmd = terminal .. " -e " .. editor
 -- However, you can use another modifier like Mod1, but it may interact with others.
 modkey = "Mod4"
 
-function sleep(n)
-    local ntime = os.clock()+n
-    repeat until os.clock() > ntime
-end
-
 -- Table of layouts to cover with awful.layout.inc, order matters.
 awful.layout.layouts = {
     awful.layout.suit.floating,
@@ -86,7 +81,7 @@ audio = {
     default = 1,
     devices = {
         [1] = {
-            volume = 35,
+            volume = 65,
             muted = false,
         },
         [2] = {
@@ -101,10 +96,11 @@ tags = {
 }
 autostartapps = {
     profileConfigPath.."changedw",
-    "pactl set-sink-volume 1 35%",
-    "pactl set-sink-volume 2 100%",
+    "pactl set-sink-volume 1 "..audio.devices[1].volume.."%",
+    "pactl set-sink-volume 2 "..audio.devices[2].volume.."%",
     profileConfigPath.."set-output 1",
-    "numlockx on"
+    "numlockx on",
+    "python "..profileConfigPath.."music-server.py"
 }
 for i = 1,#autostartapps do
     awful.util.spawn(autostartapps[i])
@@ -135,9 +131,126 @@ mymainmenu = awful.menu({ items = { { "Hotkeys", function() return false, hotkey
                                   }
                         })
 
--- Chromium OS widgets
+-- Custom update_function for tasklist
+function custom_update(w, buttons, label, data, objects)
+    -- update the widgets, creating them if needed
+    w:reset()
+    naughty.notify({text = "running custom_update"})
+    w:set_max_widget_size(200)
+    --[[local lay = wibox.layout.fixed.horizontal()
+    for i, o in ipairs(objects) do
+        local cache = data[o]
+        local ib, tb, bgb, tbm, ibm, l
+        if cache then
+            ib = cache.ib
+            --tb = cache.tb
+            bgb = cache.bgb
+            --tbm = cache.tbm
+            ibm = cache.ibm
+        else
+            ib = wibox.widget.imagebox()
+            --tb = wibox.widget.textbox()
+            bgb = wibox.container.background()
+            --tbm = wibox.container.margin(tb, dpi(4), dpi(4))
+            ibm = wibox.container.margin(ib, dpi(4))
+            l = wibox.layout.fixed.vertical()
+
+            -- All of this is added in a fixed widget
+            l:fill_space(true)
+            l:add(ibm)
+            --l:add(tbm)
+
+            -- And all of this gets a background
+            bgb:set_widget(l)
+
+            bgb:buttons(common.create_buttons(buttons, o))
+
+            data[o] = {
+                ib  = ib,
+                --tb  = tb,
+                bgb = bgb,
+                --tbm = tbm,
+                ibm = ibm,
+            }
+        end
+        local text, bg, bg_image, icon, args = label(o, tb)
+        args = args or {}
+
+        -- The text might be invalid, so use pcall.
+        if text == nil or text == "" then
+            tbm:set_margins(0)
+        else
+            if not tb:set_markup_silently(text) then
+                tb:set_markup("<i>&lt;Invalid text&gt;</i>")
+            end
+        end
+        bgb:set_bg(bg)
+        if type(bg_image) == "function" then
+            -- TODO: Why does this pass nil as an argument?
+            bg_image = bg_image(tb,o,nil,objects,i)
+        end
+        bgb:set_bgimage(bg_image)
+        if icon then
+            ib:set_image(icon)
+        else
+            ibm:set_margins(0)
+        end
+
+        bgb.shape              = args.shape
+        bgb.shape_border_width = args.shape_border_width
+        bgb.shape_border_color = args.shape_border_color
+
+        lay:add(bgb)
+        --w:add(bgb)
+
+        bgb.bg = "#00f"
+        bgb.fg = "#00f"
+        tbm.color = "#f00"
+        ibm.color = "#0f0"
+        ib.resize = false
+        ib.forced_width = 20
+        ib.forced_height = 20
+   end]]--
+end
+
+
+-- Lockdown for going to sleep @ 10:15PM
+local btcntdwn = 120
+local bedtime = timer({timeout = 60})
+local pofftime = timer({timeout = 1})
+local wibox_bedtime = wibox({border_width = 0, ontop = true, visible = false, x = 0, y = 0, width = 250, height = 100})
+local captiontb = wibox.widget.textbox("Computer shutting down in:")
+captiontb.align = "center"
+local btcntdwntb = wibox.widget.textbox(tostring(btcntdwn))
+btcntdwntb.align = "center"
+btcntdwntb.font = "Roboto 50"
+wibox_bedtime.widget = wibox.layout.fixed.vertical(captiontb,btcntdwntb)
+
+pofftime:connect_signal("timeout", function()
+    if btcntdwn <= 0 then
+        awful.util.spawn("systemctl poweroff")
+        pofftime:stop()
+    else
+        btcntdwn = btcntdwn-1
+        btcntdwntb.text = tostring(btcntdwn)
+    end
+end)
+
+bedtime:connect_signal("timeout", function()
+    local hr = tonumber(os.date("%H"))
+    local min = tonumber(os.date("%M"))
+    if hr >= 22 or hr <= 4 then
+        if min >= 15 and not pofftime.started then
+            wibox_bedtime.visible = true
+            pofftime:start()
+            bedtime:stop()
+        end
+    end
+end)
+bedtime:start()
+
 -- Sysmenu
-sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = 1920, y = 730, width = 240, height = 310, screen = 1, bg = "#232729",  fg = "#fefefe"})
+sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = 1920, y = 890, width = 240, height = 150, screen = 1, bg = "#232729",  fg = "#fefefe"})
 smopen = false
 smanim = false
 
@@ -219,20 +332,6 @@ end
     layout = wibox.container.margin(switchphones,0,0,10)
 },]]
 
-function toggleSound()
-    if audio.default == 1 then
-        audio.default = 2
-        -- switch to speakers
-        animateSwitch(false)
-    else
-        audio.default = 1
-        -- switch to headset
-        animateSwitch(true)
-    end
-    awful.util.spawn(profileConfigPath.."set-output "..audio.default)
-    myvolume:emit_signal("volumechange")
-end
-
 
 -- Audio output-related stuff
 
@@ -253,113 +352,406 @@ vslider.forced_width = 150
 vslider.forced_height = 30
 local slmarg = wibox.container.margin(vslider,20,0,10)
 
+function toggleSound()
+    if audio.default == 1 then
+        audio.default = 2
+        -- switch to speakers
+        animateSwitch(false)
+    else
+        audio.default = 1
+        -- switch to headset
+        animateSwitch(true)
+    end
+    awful.util.spawn(profileConfigPath.."set-output "..audio.default)
+    vslider.value = audio.devices[audio.default].volume
+    myvolume:emit_signal("volumechange")
+end
+
+swmarg:connect_signal("button::release",function(mod,x,y,b)
+    if b == 1 then toggleSound() end
+end)
+
 local vtxt = wibox.widget.textbox("<span color='#aaa'>"..audio.devices[audio.default].volume.."%</span>")
 local vtxtmarg = wibox.container.margin(vtxt,10,0,10)
 local slcont = wibox.layout.fixed.horizontal(slmarg,vtxtmarg,swmarg)
 
 vslider:connect_signal("property::value", function()
     --emit signal for volumechange
-    vtxt.markup = "<span color='#aaa'>"..vslider.value.."%</span>"
+    if not audio.devices[audio.default].muted then
+        audio.devices[audio.default].volume = vslider.value
+        awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ "..audio.devices[audio.default].volume.."%")
+    end
+    vtxt:emit_signal("volumechange")
 end)
+
+
+
+-- Music player
+local msbkimg = wibox.widget.imagebox(profileConfigPath.."newui/musicprevious.png",false)
+local msplayimg = wibox.widget.imagebox(profileConfigPath.."newui/musicplay.png",false)
+local mspauseimg = wibox.widget.imagebox(profileConfigPath.."newui/musicpause.png",false)
+mspauseimg.opacity = 0
+local msfdimg = wibox.widget.imagebox(profileConfigPath.."newui/musicnext.png",false)
+local msplaypause = wibox.layout.stack()
+msplaypause:add(msplayimg,mspauseimg)
+local mssongtxt = wibox.widget.textbox("<span color='#aaa'>Nothing is playing.</span>")
+mssongtxt.align = "center"
+isPlaying = false
+ppanim = false
+
+function animatePlayPause()
+    if ppanim then mspauseimg:emit_signal("pp-interrupt") end
+    local t = timer({timeout = 0.01})
+    amcallback = function()
+        t:stop()
+        mspauseimg:disconnect_signal("pp-interrupt",amcallback)
+    end
+    if isPlaying then
+        t:connect_signal("timeout", function()
+            msplayimg.opacity = msplayimg.opacity-0.1
+            mspauseimg.opacity = mspauseimg.opacity+0.1
+            msplayimg:emit_signal("widget::redraw_needed")
+            mspauseimg:emit_signal("widget::redraw_needed")
+            if msplayimg.opacity <= 0 then
+                t:stop()
+                msplayimg.opacity = 0
+                mspauseimg.opacity = 1
+                mspauseimg:disconnect_signal("pp-interrupt",amcallback)
+                ppanim = false
+            end
+        end)
+    else
+        t:connect_signal("timeout", function()
+            msplayimg.opacity = msplayimg.opacity+0.1
+            mspauseimg.opacity = mspauseimg.opacity-0.1
+            msplayimg:emit_signal("widget::redraw_needed")
+            mspauseimg:emit_signal("widget::redraw_needed")
+            if msplayimg.opacity >= 1 then
+                t:stop()
+                msplayimg.opacity = 1
+                mspauseimg.opacity = 0
+                mspauseimg:disconnect_signal("pp-interrupt",amcallback)
+                ppanim = false
+            end
+        end)
+    end
+    mspauseimg:connect_signal("pp-interrupt", amcallback)
+    ppanim = true
+    t:start()
+end
+
+
+function togglePlayPause()
+    isPlaying = not isPlaying
+    if isPlaying then
+        -- run play command
+        awful.util.spawn("python "..profileConfigPath.."music-client.py play")
+    else
+        -- run pause command
+        awful.util.spawn("python "..profileConfigPath.."music-client.py pause")
+    end
+    animatePlayPause()
+end
+
+function bkfd_song(gofd)
+    if gofd then -- skip forward
+        awful.util.spawn("python "..profileConfigPath.."music-client.py next")
+    else -- skip backward
+        awful.util.spawn("python "..profileConfigPath.."music-client.py back")
+    end
+    if not isPlaying then
+        isPlaying = true
+        animatePlayPause()
+    end
+end
+
+msplaypause:connect_signal("button::release",function(mod,x,y,b)
+    if b == 1 then togglePlayPause() end
+end)
+
+msbkimg:connect_signal("button::release",function(mod,x,y,b)
+    if b == 1 then bkfd_song(false) end
+end)
+
+msfdimg:connect_signal("button::release",function(mod,x,y,b)
+    if b == 1 then bkfd_song(true) end
+end)
+
+mst = timer({timeout = 5})
+mst:connect_signal("timeout", function()
+    local output = ""
+    for line in io.lines(profileConfigPath..".pymusic-song.txt") do
+        output = line
+    end
+    if output:len() > 20 then
+        output = output:sub(1,20).."..."
+    end
+    mssongtxt.markup = "<span color='#aaa'>"..output.."</span>"
+end)
+mst:start()
+
+local mscont = wibox.layout.fixed.horizontal(wibox.container.margin(msbkimg,50),msplaypause,msfdimg)
+
+
 
 systray = wibox.widget.systray()
 systray:set_base_size(32)
-sysmenu.widget = wibox.layout.fixed.vertical(slcont,systray)
+sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt,systray)
 
--- App list dialog
-appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = 640, width = 250, height = 400, screen = 1, bg = "#232729", fg = "#fefefe"})
+-- App list panel
+-- Apps from top to bottom: Atom, Steam, Discord, LMMS, Blender, Dragonframe, Ardour, Natron, Thunar
+appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = 466, width = 250, height = 574, screen = 1, bg = "#232729ff", fg = "#fefefe"})
 amanim = false
+local apptim = timer({timeout = 5})
+apptim:connect_signal("timeout", function()
+    naughty.notify({text = "ran"})
+    appmenu.bg = "#23272900"
+    appmenu:emit_signal("widget::redraw_needed")
+    apptim:stop()
+end)
+apptim:start()
 
 -- Atom Text Editor
 atomimgbox = wibox.widget.imagebox(profileConfigPath.."newui/atom.png",false)
 atomtxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Atom</span>"),5)
-atomcont = wibox.container.margin(wibox.layout.fixed.horizontal(atomimgbox,atomtxtbox),5,0,5)
+atomcont = wibox.container.margin(wibox.layout.fixed.horizontal(atomimgbox,atomtxtbox),5,0,5,5)
+atomcontbg = wibox.container.background(atomcont)
 atomcont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn("/usr/share/atom/atom")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+atomcont:connect_signal("mouse::enter",function()
+    atomcontbg.bg = "#2f3437"
+    atomcont:emit_signal("widget::redraw_needed")
+end)
+atomcont:connect_signal("mouse::leave",function()
+    atomcontbg.bg = "#232729"
+    atomcontbg:emit_signal("widget::redraw_needed")
+end)
+
 
 -- Steam
 steamimgbox = wibox.widget.imagebox(profileConfigPath.."newui/steam.png",false)
 steamtxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Steam</span>"),5)
-steamcont = wibox.container.margin(wibox.layout.fixed.horizontal(steamimgbox,steamtxtbox),5,0,5)
+steamcont = wibox.container.margin(wibox.layout.fixed.horizontal(steamimgbox,steamtxtbox),5,0,5,5)
+steamcontbg = wibox.container.background(steamcont)
 steamcont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn("/usr/bin/steam")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+steamcont:connect_signal("mouse::enter",function()
+    steamcontbg.bg = "#2f3437"
+    steamcontbg:emit_signal("widget::redraw_needed")
+end)
+steamcont:connect_signal("mouse::leave",function()
+    steamcontbg.bg = "#232729"
+    steamcontbg:emit_signal("widget::redraw_needed")
+end)
 
 -- Discord
 discimgbox = wibox.widget.imagebox(profileConfigPath.."newui/discord.png",false)
 disctxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Discord</span>"),5)
-disccont = wibox.container.margin(wibox.layout.fixed.horizontal(discimgbox,disctxtbox),5,0,5)
+disccont = wibox.container.margin(wibox.layout.fixed.horizontal(discimgbox,disctxtbox),5,0,5,5)
+disccontbg = wibox.container.background(disccont)
 disccont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn("/usr/share/discord/Discord")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+disccont:connect_signal("mouse::enter",function()
+    disccontbg.bg = "#2f3437"
+    disccontbg:emit_signal("widget::redraw_needed")
+end)
+disccont:connect_signal("mouse::leave",function()
+    disccontbg.bg = "#232729"
+    disccontbg:emit_signal("widget::redraw_needed")
+end)
+
 
 -- LMMS
 lmmsimgbox = wibox.widget.imagebox(profileConfigPath.."newui/lmms.png",false)
 lmmstxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>LMMS</span>"),5)
-lmmscont = wibox.container.margin(wibox.layout.fixed.horizontal(lmmsimgbox,lmmstxtbox),5,0,5)
+lmmscont = wibox.container.margin(wibox.layout.fixed.horizontal(lmmsimgbox,lmmstxtbox),5,0,5,5)
+lmmscontbg = wibox.container.background(lmmscont)
 lmmscont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn("env QT_X11_NO_NATIVE_MENUBAR=1 lmms")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+lmmscont:connect_signal("mouse::enter",function()
+    lmmscontbg.bg = "#2f3437"
+    lmmscontbg:emit_signal("widget::redraw_needed")
+end)
+lmmscont:connect_signal("mouse::leave",function()
+    lmmscontbg.bg = "#232729"
+    lmmscontbg:emit_signal("widget::redraw_needed")
+end)
+
+-- Blender
+blendimgbox = wibox.widget.imagebox(profileConfigPath.."newui/blender.png",false)
+blendtxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Blender</span>"),5)
+blendcont = wibox.container.margin(wibox.layout.fixed.horizontal(blendimgbox,blendtxtbox),5,0,5,5)
+blendcontbg = wibox.container.background(blendcont)
+blendcont:connect_signal("button::press",function(mod,x,y,b)
+    if b == 1 then
+        awful.util.spawn("/home/legostax/blender-2.78c/blender")
+        appmenu:emit_signal("close-appmenu")
+    end
+end)
+blendcont:connect_signal("mouse::enter",function()
+    blendcontbg.bg = "#2f3437"
+    blendcont:emit_signal("widget::redraw_needed")
+end)
+blendcont:connect_signal("mouse::leave",function()
+    blendcontbg.bg = "#232729"
+    blendcontbg:emit_signal("widget::redraw_needed")
+end)
 
 -- Dragonframe
 dfimgbox = wibox.widget.imagebox(profileConfigPath.."newui/df4.png",false)
 dftxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Dragonframe</span>"),5)
-dfcont = wibox.container.margin(wibox.layout.fixed.horizontal(dfimgbox,dftxtbox),5,0,5)
+dfcont = wibox.container.margin(wibox.layout.fixed.horizontal(dfimgbox,dftxtbox),5,0,5,5)
+dfcontbg = wibox.container.background(dfcont)
 dfcont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn(profileConfigPath.."startdf4")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+dfcont:connect_signal("mouse::enter",function()
+    dfcontbg.bg = "#2f3437"
+    dfcontbg:emit_signal("widget::redraw_needed")
+end)
+dfcont:connect_signal("mouse::leave",function()
+    dfcontbg.bg = "#232729"
+    dfcontbg:emit_signal("widget::redraw_needed")
+end)
+
+-- Ardour
+ardourimgbox = wibox.widget.imagebox(profileConfigPath.."newui/ardour.png",false)
+ardourtxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Ardour</span>"),5)
+ardourcont = wibox.container.margin(wibox.layout.fixed.horizontal(ardourimgbox,ardourtxtbox),5,0,5,5)
+ardourcontbg = wibox.container.background(ardourcont)
+ardourcont:connect_signal("button::press",function(mod,x,y,b)
+    if b == 1 then
+        awful.util.spawn(profileConfigPath.."startardour")
+        appmenu:emit_signal("close-appmenu")
+    end
+end)
+ardourcont:connect_signal("mouse::enter",function()
+    ardourcontbg.bg = "#2f3437"
+    ardourcontbg:emit_signal("widget::redraw_needed")
+end)
+ardourcont:connect_signal("mouse::leave",function()
+    ardourcontbg.bg = "#232729"
+    ardourcontbg:emit_signal("widget::redraw_needed")
+end)
+
+-- Natron
+natronimgbox = wibox.widget.imagebox(profileConfigPath.."newui/natron.png",false)
+natrontxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Natron</span>"),5)
+natroncont = wibox.container.margin(wibox.layout.fixed.horizontal(natronimgbox,natrontxtbox),5,0,5,5)
+natroncontbg = wibox.container.background(natroncont)
+natroncont:connect_signal("button::press",function(mod,x,y,b)
+    if b == 1 then
+        awful.util.spawn("/home/legostax/Natron2/Natron")
+        appmenu:emit_signal("close-appmenu")
+    end
+end)
+natroncont:connect_signal("mouse::enter",function()
+    natroncontbg.bg = "#2f3437"
+    natroncont:emit_signal("widget::redraw_needed")
+end)
+natroncont:connect_signal("mouse::leave",function()
+    natroncontbg.bg = "#232729"
+    natroncontbg:emit_signal("widget::redraw_needed")
+end)
 
 -- Thunar/File Manager
 fmimgbox = wibox.widget.imagebox(profileConfigPath.."newui/thunar.png",false)
 fmtxtbox = wibox.container.margin(wibox.widget.textbox("<span color='#aaa'>Files</span>"),5)
-fmcont = wibox.container.margin(wibox.layout.fixed.horizontal(fmimgbox,fmtxtbox),5,0,5)
+fmcont = wibox.container.margin(wibox.layout.fixed.horizontal(fmimgbox,fmtxtbox),5,0,5,5)
+fmcontbg = wibox.container.background(fmcont)
 fmcont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         awful.util.spawn("thunar")
         appmenu:emit_signal("close-appmenu")
     end
 end)
+fmcont:connect_signal("mouse::enter",function()
+    fmcontbg.bg = "#2f3437"
+    fmcontbg:emit_signal("widget::redraw_needed")
+end)
+fmcont:connect_signal("mouse::leave",function()
+    fmcontbg.bg = "#232729"
+    fmcontbg:emit_signal("widget::redraw_needed")
+end)
 
 
 
 -- Lock, Logout, Reboot, Poweroff
-lockimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/lock2.png",false),30,0,30)
+lockimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/lock2.png",false),30,0,10)
+lockimgbox.opacity = 0.5
 lockimgbox:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then
         appmenu:emit_signal("close-appmenu")
         awful.util.spawn("dm-tool lock")
     end
 end)
-logoutimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/logout2.png",false),30,0,30)
+lockimgbox:connect_signal("mouse::enter",function()
+    lockimgbox.opacity = 0.75
+    lockimgbox:emit_signal("widget::redraw_needed")
+end)
+lockimgbox:connect_signal("mouse::leave",function()
+    lockimgbox.opacity = 0.5
+    lockimgbox:emit_signal("widget::redraw_needed")
+end)
+logoutimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/logout2.png",false),30,0,10)
+logoutimgbox.opacity = 0.5
 logoutimgbox:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then awesome.quit() end
 end)
-rebootimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/reboot2.png",false),30,0,30)
+logoutimgbox:connect_signal("mouse::enter",function()
+    logoutimgbox.opacity = 0.75
+    logoutimgbox:emit_signal("widget::redraw_needed")
+end)
+logoutimgbox:connect_signal("mouse::leave",function()
+    logoutimgbox.opacity = 0.5
+    logoutimgbox:emit_signal("widget::redraw_needed")
+end)
+rebootimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/reboot2.png",false),30,0,10)
+rebootimgbox.opacity = 0.5
 rebootimgbox:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then awful.util.spawn("systemctl reboot") end
 end)
-poffimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/poweroff2.png",false),30,0,30)
+rebootimgbox:connect_signal("mouse::enter",function()
+    rebootimgbox.opacity = 0.75
+    rebootimgbox:emit_signal("widget::redraw_needed")
+end)
+rebootimgbox:connect_signal("mouse::leave",function()
+    rebootimgbox.opacity = 0.5
+    rebootimgbox:emit_signal("widget::redraw_needed")
+end)
+poffimgbox = wibox.container.margin(wibox.widget.imagebox(profileConfigPath.."newui/poweroff2.png",false),30,0,10)
+poffimgbox.opacity = 0.5
 poffimgbox:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then awful.util.spawn("systemctl poweroff") end
 end)
+poffimgbox:connect_signal("mouse::enter",function()
+    poffimgbox.opacity = 0.75
+    poffimgbox:emit_signal("widget::redraw_needed")
+end)
+poffimgbox:connect_signal("mouse::leave",function()
+    poffimgbox.opacity = 0.5
+    poffimgbox:emit_signal("widget::redraw_needed")
+end)
 utilcont = wibox.layout.fixed.horizontal(lockimgbox,logoutimgbox,rebootimgbox,poffimgbox)
-utilcont.opacity = 0.5
 
 
 
@@ -368,7 +760,7 @@ utilcont.opacity = 0.5
 
 -- App list setup
 
-local amlayout = wibox.layout.fixed.vertical(atomcont,steamcont,disccont,lmmscont,dfcont,fmcont,utilcont)
+local amlayout = wibox.layout.fixed.vertical(atomcontbg,steamcontbg,disccontbg,lmmscontbg,blendcontbg,dfcontbg,ardourcontbg,natroncontbg,fmcontbg,utilcont)
 appmenu.widget = amlayout
 --[[appmenu:setup({
     layout = wibox.layout.fixed.vertical,
@@ -594,8 +986,9 @@ function animateTagline_dummy(newtagid,newtagpos)
     end
 end
 
--- X1: 1684, X2: 1718, X3: 1752, X4: 1788
+-- X1: 1723, X2: 1757, X3: 1791, X4: 1827
 awful.screen.focused():connect_signal("tag::history::update", function()
+    --naughty.notify({text = "tag changed"})
     local curclients = awful.screen.focused().selected_tag:clients()
     local val = true
     for _, c in ipairs(curclients) do
@@ -640,7 +1033,6 @@ mykeyboardlayout = awful.widget.keyboardlayout()
 mytextclock = wibox.widget.textclock(" %H:%M ")
 
 
-
 -- Create volume percent textbox
 myvolume = wibox.widget.textbox(audio.devices[audio.default].volume.."%")
 
@@ -649,6 +1041,14 @@ syscont = wibox.container.margin(mytextclock,10,10)
 syscont:connect_signal("button::press",function(mod,x,y,b)
     if b == 1 then toggleSysmenu() end
 end)
+-- tooltip displays date
+mytextclock_t = awful.tooltip({
+    objects = { syscont },
+    timer_function = function()
+        return os.date("%b %d, %Y")
+    end,
+    delay_show = 1
+})
 
 
 
@@ -688,7 +1088,7 @@ local tasklist_buttons = awful.util.table.join(
                                                   c:raise()
                                               end
                                           end),
-                     awful.button({ }, 3, client_menu_toggle_fn()),
+                     --awful.button({ }, 3, client_menu_toggle_fn()),
                      awful.button({ }, 4, function ()
                                               awful.client.focus.byidx(1)
                                           end),
@@ -733,7 +1133,7 @@ awful.screen.connect_for_each_screen(function(s)
                            awful.button({ }, 4, function () awful.layout.inc( 1) end),
                            awful.button({ }, 5, function () awful.layout.inc(-1) end)))]]--
     -- Create a taglist widget
-    s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, taglist_buttons)
+    s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, taglist_buttons, {}, custom_update)
 
     -- Create a tasklist widget
     s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, tasklist_buttons)
@@ -798,11 +1198,13 @@ globalkeys = awful.util.table.join(
         syswidget.visible = not syswidget.visible
     end, {description = "opens syswidget", group = "awesome"}),
     awful.key({}, "Print", function() awful.util.spawn_with_shell("scrot -e 'mv $f ~/Screenshots/'") end, {description = "take screenshot", group = "awesome"}),
+    awful.key({"Control", modkey}, "Delete", function() awful.util.spawn("xfce4-taskmanager") end, {description = "open task manager", group = "awesome"}),
     awful.key({}, "#123", function()
         if audio.devices[audio.default].volume < 100 then
             awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ +1%")
             audio.devices[audio.default].volume = audio.devices[audio.default].volume+1
             audio.devices[audio.default].muted = false
+            vslider.value = audio.devices[audio.default].volume
             myvolume:emit_signal("volumechange")
         end
     end, {description = "+1% volume", group = "awesome"}),
@@ -810,6 +1212,7 @@ globalkeys = awful.util.table.join(
         if audio.devices[audio.default].volume > 0 then
             awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ -1%")
             audio.devices[audio.default].volume = audio.devices[audio.default].volume-1
+            vslider.value = audio.devices[audio.default].volume
             myvolume:emit_signal("volumechange")
         end
     end, {description = "-1% volume", group = "awesome"}),
@@ -817,15 +1220,20 @@ globalkeys = awful.util.table.join(
         if audio.devices[audio.default].muted then
             audio.devices[audio.default].muted = false
             awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ "..audio.devices[audio.default].volume.."%")
+            vslider.value = audio.devices[audio.default].volume
             myvolume:emit_signal("volumechange")
         else
             audio.devices[audio.default].muted = true
             awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ 0")
+            vslider.value = 0
             myvolume:emit_signal("volumechange")
         end
     end, {description = "toggle volume mute", group = "awesome"}),
     awful.key({}, "#148", function() awful.util.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
     awful.key({}, "#150", function() awful.util.spawn("dm-tool lock") awful.util.spawn("systemctl suspend") end, {description = "sleep/suspend", group = "awesome"}),
+    awful.key({modkey, "Control"}, "p", togglePlayPause, {description = "Play/Pause music", group = "music"}),
+    awful.key({modkey, "Control"}, "Left", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
+    awful.key({modkey, "Control"}, "Right", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
     awful.key({modkey}, "e", toggleLauncherImg, {description = "open search dialog", group = "awesome"}),
 
     awful.key({ modkey,           }, "s",      hotkeys_popup.show_help,
@@ -931,7 +1339,9 @@ globalkeys = awful.util.table.join(
     -- Open Chrome on CHROME tag
     awful.key({ modkey }, "n", function()
         local t = awful.screen.focused().selected_tag
-        if t.index == 1 then awful.util.spawn("google-chrome") end
+        if t.index == 1 then awful.util.spawn("google-chrome")
+        elseif t.index == 3 then awful.util.spawn("/usr/share/discord/Discord")
+        elseif t.index == 4 then awful.util.spawn("/usr/bin/steam") end
     end, {description = "open Chrome", group = "tag"})
 )
 
@@ -950,13 +1360,13 @@ clientkeys = awful.util.table.join(
               {description = "move to master", group = "client"}),
     awful.key({ modkey,           }, "o",      function (c) c:move_to_screen()               end,
               {description = "move to screen", group = "client"}),
-    awful.key({ modkey,           }, "n",
+    --[[awful.key({ modkey,           }, "n",
         function (c)
             -- The client currently has the input focus, so it cannot be
             -- minimized, since minimized clients can't have the focus.
             c.minimized = true
         end ,
-        {description = "minimize", group = "client"}),
+        {description = "minimize", group = "client"}),]]--
     awful.key({ modkey,           }, "m",
         function (c)
             c.maximized = not c.maximized
@@ -1072,6 +1482,10 @@ awful.rules.rules = {
     -- PRODUCTIVITY tag
     {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Dragonframe"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Ardour-5.8.0"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     -- SOCIAL tag
     {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
     {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
@@ -1097,11 +1511,11 @@ awful.rules.rules = {
 -- }}}
 
 -- {{{ Signals
-myvolume:connect_signal("volumechange", function()
+vtxt:connect_signal("volumechange", function()
     if audio.devices[audio.default].muted then
-        myvolume.text = "   0%"
+        vtxt.markup = "<span color='#aaa'>0%</span>"
     else
-        myvolume.text = "   "..audio.devices[audio.default].volume.."%"
+        vtxt.markup = "<span color='#aaa'>"..audio.devices[audio.default].volume.."%</span>"
     end
 end)
 
@@ -1129,6 +1543,16 @@ client.connect_signal("unmanage", function (c)
     if awful.rules.match(c, {class = "Chrauncher"}) and launcherOpen then
         toggleLauncherImg()
     end
+
+    local curclients = awful.screen.focused().selected_tag:clients()
+    local val = true
+    for _, c in ipairs(curclients) do
+        if c.fullscreen then
+            val = false
+            break
+        end
+    end
+    tagline.visible = val
 end)
 
 client.connect_signal("property::fullscreen", function(c)
@@ -1159,7 +1583,7 @@ client.connect_signal("request::titlebars", function(c)
         titlebaricon.forced_height = 20
         titlebaricon.forced_width = 20
 
-        maximized = wibox.widget.imagebox(profileConfigPath.."themes/default/titlebar/maximized_focus_active3.png",false)
+        local maximized = wibox.widget.imagebox(profileConfigPath.."themes/default/titlebar/maximized_focus_active3.png",false)
         c:connect_signal("focus",function()
             maximized.image = "themes/default/titlebar/maximized_focus_active3.png"
         end)

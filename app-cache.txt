@@ -1,0 +1,444 @@
+[Entry]
+SUPERHOT
+steam steam://rungameid/322500
+/usr/share/icons/Paper/32x32/apps/steam.png
+[Entry]
+Rocket League
+steam steam://rungameid/252950
+/usr/share/icons/Paper/32x32/apps/steam.png
+[Entry]
+Steam
+/usr/bin/steam %U
+/usr/share/icons/Paper/32x32/apps/steam.png
+[Entry]
+Garry's Mod
+steam steam://rungameid/4000
+/home/legostax/.local/share/icons/hicolor/32x32/apps/steam_icon_4000.png
+[Entry]
+Portal 2
+steam steam://rungameid/620
+/home/legostax/.local/share/icons/hicolor/32x32/apps/steam_icon_620.png
+[Entry]
+Terraria
+steam steam://rungameid/105600
+/usr/share/icons/Paper/32x32/apps/steam.png
+[Entry]
+Web Browser
+exo-open --launch WebBrowser %u
+/usr/share/icons/Paper/32x32/apps/web-browser.png
+[Entry]
+Orage preferences
+orage -p
+/usr/share/icons/Paper/32x32/apps/xfcalendar.png
+[Entry]
+ImageMagick (display Q16)
+/usr/bin/display-im6 %f
+/usr/share/icons/hicolor/32x32/apps/display-im6.q16.png
+[Entry]
+Window Manager
+xfwm4-settings
+/usr/share/icons/Paper/32x32/apps/xfwm4.png
+[Entry]
+Settings Editor
+xfce4-settings-editor
+/usr/share/icons/Paper/32x32/categories/preferences-system.png
+[Entry]
+Xfce Panel Switch
+xfpanel-switch
+/usr/share/icons/Paper/32x32/apps/xfce4-panel.png
+[Entry]
+Mouse and Touchpad
+xfce4-mouse-settings
+/usr/share/icons/Paper/32x32/devices/preferences-desktop-peripherals.png
+[Entry]
+Notifications
+xfce4-notifyd-config
+/usr/share/icons/Paper/32x32/apps/xfce4-notifyd.png
+[Entry]
+PulseAudio Volume Control
+pavucontrol
+/usr/share/icons/Paper/32x32/apps/multimedia-volume-control.png
+[Entry]
+ImageMagick (display Q16)
+/usr/lib/x86_64-linux-gnu/ImageMagick-6.8.9/bin-Q16/display %f
+/usr/share/icons/hicolor/32x32/apps/display-im6.q16.png
+[Entry]
+Menu Editor
+/usr/bin/menulibre
+/usr/share/icons/hicolor/32x32/apps/menulibre.svg
+[Entry]
+Run Program...
+xfce4-appfinder --collapsed
+/usr/share/icons/Paper/16x16/actions/system-run.svg
+[Entry]
+Workspaces
+xfwm4-workspace-settings
+/usr/share/icons/Paper/32x32/apps/xfce4-workspaces.png
+[Entry]
+Software & Updates
+software-properties-gtk
+/usr/share/icons/Paper/32x32/apps/software-properties.png
+[Entry]
+Network
+nm-applet
+/usr/share/icons/Paper/32x32/devices/nm-device-wireless.png
+[Entry]
+Sudoku
+gnome-sudoku
+/usr/share/icons/hicolor/32x32/apps/gnome-sudoku.png
+[Entry]
+View file
+/usr/bin/gcr-viewer
+$dne
+[Entry]
+Settings Manager
+xfce4-settings-manager
+/usr/share/icons/Paper/32x32/categories/preferences-desktop.png
+[Entry]
+Simple Scan
+simple-scan
+/usr/share/icons/Paper/32x32/devices/scanner.png
+[Entry]
+Display
+xfce4-display-settings
+/usr/share/icons/Paper/32x32/devices/video-display.png
+[Entry]
+Steam
+/usr/bin/steam %U
+/usr/share/icons/Paper/32x32/apps/steam.png
+[Entry]
+UXTerm
+uxterm
+/usr/share/icons/Paper/32x32/apps/xterm-color.png
+[Entry]
+Onboard
+onboard
+/usr/share/icons/Paper/24x24/panel/onboard.svg
+[Entry]
+Application Finder
+xfce4-appfinder
+/usr/share/icons/Paper/16x16/actions/edit-find.svg
+[Entry]
+Atom
+/usr/share/atom/atom %F
+/usr/share/icons/Paper/32x32/apps/atom.png
+[Entry]
+NVIDIA X Server Settings
+/usr/bin/nvidia-settings
+/usr/share/icons/Paper/32x32/apps/nvidia-settings.png
+[Entry]
+Archive Manager
+file-roller %U
+/usr/share/icons/Paper/32x32/apps/file-roller.png
+[Entry]
+Shared Folders
+shares-admin
+/usr/share/icons/Paper/32x32/places/folder-remote.png
+[Entry]
+Report a problem...
+/usr/share/apport/apport-gtk -c %f
+/usr/share/icons/Paper/32x32/apps/apport.png
+[Entry]
+Archive Manager
+file-roller %U
+/usr/share/icons/Paper/32x32/apps/file-roller.png
+[Entry]
+XTerm
+xterm
+/usr/share/icons/Paper/32x32/apps/xterm-color.png
+[Entry]
+LightDM GTK+ Greeter settings
+lightdm-gtk-greeter-settings-pkexec
+/usr/share/icons/Paper/32x32/apps/lightdm-gtk-greeter-settings.png
+[Entry]
+Mines
+gnome-mines
+/usr/share/icons/hicolor/32x32/apps/gnome-mines.png
+[Entry]
+Network
+network-admin
+/usr/share/icons/Paper/32x32/categories/preferences-system-network.png
+[Entry]
+Open Folder with Thunar
+thunar %F
+/usr/share/icons/Paper/32x32/apps/Thunar.png
+[Entry]
+Discord Canary
+/usr/share/discord-canary/DiscordCanary
+/usr/share/icons/Paper/32x32/apps/discord-canary.png
+[Entry]
+Preferred Applications
+exo-preferred-applications
+/usr/share/icons/Paper/32x32/categories/preferences-desktop-default-applications.png
+[Entry]
+Time and Date
+time-admin
+/usr/share/icons/Paper/32x32/apps/time-admin.png
+[Entry]
+Keyboard
+xfce4-keyboard-settings
+/usr/share/icons/Paper/32x32/apps/preferences-desktop-keyboard.png
+[Entry]
+Print Preview
+evince-previewer %U
+/usr/share/icons/Paper/32x32/actions/document-print-preview.png
+[Entry]
+Reactivate HP LaserJet 1018/1020 after reloading paper
+ec=usb_printerid /dev/usb/lp0
+$dne
+[Entry]
+Screenshot
+xfce4-screenshooter
+/usr/share/icons/Paper/32x32/apps/applets-screenshooter.png
+[Entry]
+Thunar File Manager
+thunar %F
+/usr/share/icons/Paper/32x32/apps/Thunar.png
+[Entry]
+Orage Globaltime
+globaltime
+/usr/share/icons/Paper/32x32/apps/orage_globaltime.png
+[Entry]
+Window Manager Tweaks
+xfwm4-tweaks-settings
+/usr/share/icons/Paper/32x32/apps/wmtweaks.png
+[Entry]
+Notes
+xfce4-notes
+/usr/share/icons/Paper/32x32/apps/xfce4-notes-plugin.png
+[Entry]
+Transmission
+transmission-gtk %U
+/usr/share/icons/Paper/32x32/apps/transmission.png
+[Entry]
+Appearance
+xfce4-appearance-settings
+/usr/share/icons/Paper/32x32/apps/preferences-desktop-theme.png
+[Entry]
+GitKraken
+/usr/share/gitkraken/gitkraken %U
+/usr/share/pixmaps/app.png
+[Entry]
+Xfce Terminal
+xfce4-terminal
+/usr/share/icons/Paper/32x32/apps/utilities-terminal.png
+[Entry]
+About Xfce
+xfce4-about
+/usr/share/icons/Paper/32x32/actions/help-about.png
+[Entry]
+Access Prompt
+/usr/lib/gcr/gcr-prompter
+/usr/share/icons/Paper/32x32/status/security-medium.png
+[Entry]
+Python (v3.5)
+/usr/bin/python3.5
+$dne
+[Entry]
+Customize Look and Feel
+lxappearance
+/usr/share/icons/Paper/32x32/apps/preferences-desktop-theme.png
+[Entry]
+File Manager
+exo-open --launch FileManager %u
+/usr/share/icons/Paper/32x32/apps/system-file-manager.png
+[Entry]
+mpv Media Player
+/usr/bin/mpv --profile=pseudo-gui -- %U
+/usr/share/icons/Paper/32x32/apps/mpv.png
+[Entry]
+Ristretto Image Viewer
+ristretto %F
+/usr/share/icons/Paper/32x32/apps/ristretto.png
+[Entry]
+Bluetooth Adapters
+blueman-adapters
+/usr/share/icons/hicolor/scalable/devices/blueman-device.svg
+[Entry]
+Log Out
+xfce4-session-logout
+/usr/share/icons/Paper/32x32/actions/system-log-out.png
+[Entry]
+Theme Configuration
+gtk-theme-config
+/usr/share/icons/Paper/32x32/apps/gtk-theme-config.png
+[Entry]
+guvcview
+guvcview
+$dne
+[Entry]
+Calculator
+gnome-calculator
+/usr/share/icons/Paper/32x32/apps/accessories-calculator.png
+[Entry]
+Create Launcher on the panel
+xfce4-panel --add=launcher %u
+/usr/share/icons/Paper/32x32/mimetypes/application-x-executable.png
+[Entry]
+Accessibility
+xfce4-accessibility-settings
+/usr/share/icons/Paper/32x32/apps/preferences-desktop-accessibility.png
+[Entry]
+Blender
+blender %f
+/usr/share/icons/Paper/32x32/apps/blender.png
+[Entry]
+Xfburn
+xfburn
+/usr/share/icons/Paper/32x32/devices/media-cdrom.png
+[Entry]
+Task Manager
+xfce4-taskmanager
+/usr/share/icons/Paper/32x32/apps/utilities-system-monitor.png
+[Entry]
+Session and Startup
+xfce4-session-settings
+/usr/share/icons/Paper/32x32/apps/xfce4-session.png
+[Entry]
+Software Install
+gnome-software --local-filename=%f
+/usr/share/icons/Paper/32x32/apps/system-software-install.png
+[Entry]
+GIMP Image Editor
+gimp-2.8 %U
+/usr/share/icons/Paper/32x32/apps/gimp.png
+[Entry]
+Catfish File Search
+/usr/bin/catfish
+/usr/share/icons/Paper/32x32/apps/catfish.png
+[Entry]
+Help
+yelp %u
+/usr/share/icons/Paper/32x32/apps/help-browser.png
+[Entry]
+Power Manager
+xfce4-power-manager-settings
+/usr/share/icons/Paper/32x32/categories/xfpm-ac-adapter.png
+[Entry]
+Terminal Emulator
+exo-open --launch TerminalEmulator
+/usr/share/icons/Paper/32x32/apps/utilities-terminal.png
+[Entry]
+VLC media player
+/usr/bin/vlc --started-from-file %U
+/usr/share/icons/Paper/32x32/apps/vlc.png
+[Entry]
+Feh
+feh %F
+$dne
+[Entry]
+Python (v2.7)
+/usr/bin/python2.7
+$dne
+[Entry]
+Mail Reader
+exo-open --launch MailReader %u
+/usr/share/icons/Paper/32x32/apps/internet-mail.png
+[Entry]
+Software & Updates
+software-properties-gtk
+/usr/share/icons/Paper/32x32/apps/software-properties.png
+[Entry]
+Printers
+system-config-printer
+/usr/share/icons/Paper/32x32/devices/printer.png
+[Entry]
+Additional Drivers
+/usr/bin/software-properties-gtk --open-tab=4
+/usr/share/icons/Paper/32x32/apps/jockey.png
+[Entry]
+Bluetooth Manager
+blueman-manager
+/usr/share/icons/Paper/32x32/apps/blueman.png
+[Entry]
+MIME Type Editor
+xfce4-mime-settings
+/usr/share/icons/Paper/32x32/mimetypes/application-x-executable.png
+[Entry]
+Software Updater
+/usr/bin/update-manager
+/usr/share/icons/Paper/32x32/apps/system-software-update.png
+[Entry]
+LMMS
+env QT_X11_NO_NATIVE_MENUBAR=1 lmms %f
+/usr/share/icons/lmms.png
+[Entry]
+Character Map
+gucharmap
+/usr/share/icons/Paper/32x32/apps/accessories-character-map.png
+[Entry]
+About Me
+/usr/bin/mugshot
+/usr/share/icons/hicolor/scalable/apps/mugshot.svg
+[Entry]
+Language Support
+/usr/bin/gnome-language-selector
+/usr/share/icons/Paper/32x32/categories/preferences-desktop-locale.png
+[Entry]
+Dictionary
+xfce4-dict
+/usr/share/icons/Paper/32x32/apps/xfce4-dict.png
+[Entry]
+Audacity
+env UBUNTU_MENUPROXY=0 audacity %F
+/usr/share/icons/Paper/32x32/apps/audacity.png
+[Entry]
+File Manager
+thunar-settings
+/usr/share/icons/Paper/32x32/apps/system-file-manager.png
+[Entry]
+Software
+gnome-software %U
+/usr/share/icons/Paper/32x32/apps/org.gnome.Software.png
+[Entry]
+Onboard Settings
+onboard-settings
+/usr/share/icons/Paper/24x24/panel/onboard.svg
+[Entry]
+Network Connections
+nm-connection-editor
+/usr/share/icons/Paper/32x32/categories/preferences-system-network.png
+[Entry]
+Vim
+vim %F
+/usr/share/icons/Paper/32x32/apps/gvim.png
+[Entry]
+Mousepad
+mousepad %F
+/usr/share/icons/Paper/32x32/apps/accessories-text-editor.png
+[Entry]
+Users and Groups
+users-admin
+/usr/share/icons/Paper/32x32/apps/config-users.png
+[Entry]
+Orage Calendar
+orage %F
+/usr/share/icons/Paper/32x32/apps/xfcalendar.png
+[Entry]
+Document Viewer
+evince %U
+/usr/share/icons/Paper/32x32/apps/evince.png
+[Entry]
+Removable Drives and Media
+thunar-volman-settings
+/usr/share/icons/Paper/32x32/devices/drive-removable-media.png
+[Entry]
+Panel
+xfce4-panel --preferences
+/usr/share/icons/Paper/32x32/apps/xfce4-panel.png
+[Entry]
+Input Method
+im-config
+/usr/share/icons/Paper/32x32/devices/input-keyboard.png
+[Entry]
+Google Chrome
+/usr/bin/google-chrome-stable %U
+/usr/share/icons/Paper/32x32/apps/google-chrome.png
+[Entry]
+Bulk Rename
+/usr/lib/x86_64-linux-gnu/Thunar/ThunarBulkRename %F
+/usr/share/icons/Paper/32x32/apps/Thunar.png
+[Entry]
+Gigolo
+gigolo
+/usr/share/icons/Paper/32x32/places/gtk-network.png

@@ -1,0 +1,5 @@
+#!/bin/bash
+
+pasuspender -- qjackctl &
+sleep 4
+ardour5 &

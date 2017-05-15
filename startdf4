@@ -1,0 +1,3 @@
+#!/bin/bash
+cd /opt/dragonframe4
+/opt/dragonframe4/dragonframe4 &
