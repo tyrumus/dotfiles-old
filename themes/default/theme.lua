@@ -83,7 +83,7 @@ theme.titlebar_maximized_button_focus_inactive  = profileConfigPath.."themes/def
 theme.titlebar_maximized_button_focus_inactive_hover = profileConfigPath.."themes/default/titlebar/maximized_focus_inactive_hover.png"
 theme.titlebar_maximized_button_focus_inactive_press = profileConfigPath.."themes/default/titlebar/maximized_focus_inactive_press.png"
 
-theme.titlebar_maximized_button_normal_active = profileConfigPath.."themes/default/titlebar/maximized_normal_active.png"
+theme.titlebar_maximized_button_normal_active = profileConfigPath.."themes/default/titlebar/maximized_normal_inactive.png"
 theme.titlebar_maximized_button_normal_active_hover = profileConfigPath.."themes/default/titlebar/maximized_normal_active_hover.png"
 theme.titlebar_maximized_button_normal_active_press = profileConfigPath.."themes/default/titlebar/maximized_normal_active_press.png"
 theme.titlebar_maximized_button_focus_active  = profileConfigPath.."themes/default/titlebar/maximized_focus_inactive.png"
