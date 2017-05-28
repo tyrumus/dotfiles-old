@@ -4,6 +4,8 @@ Here's the files that enable AwesomeWM to work how I want on my machine.
 
 Dependencies: AwesomeWM, Python, pygame, Pulseaudio
 
+3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).
+
 ## Setup/Installation
 
 - Install AwesomeWM 4.1
