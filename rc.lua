@@ -11,8 +11,54 @@ local beautiful = require("beautiful")
 local naughty = require("naughty")
 local menubar = require("menubar")
 local hotkeys_popup = require("awful.hotkeys_popup").widget
--- Chrome OS widgets
---local syswidget = require("syswidget")
+-- Common.lua
+local common = require("awful.widget.common")
+local dpi = require("beautiful").xresources.apply_dpi
+
+
+-- {{{ Edit these variables to your liking
+profileConfigPath = "/home/legostax/.config/awesome/"
+-- Wallpapers: [1] = morning, [2] = daytime, [3] = evening, [4] = night
+wallpapers = {
+    profileConfigPath.."wallpapers/morning.png",
+    profileConfigPath.."wallpapers/day.png",
+    profileConfigPath.."wallpapers/evening.jpg",
+    profileConfigPath.."wallpapers/night.jpg"
+}
+audio = {
+    default = 1,
+    devices = {
+        [1] = { -- these entry numbers reflect the number of the pulse audio sinks the table entries refer to
+            volume = 65,
+            muted = false,
+        },
+        [2] = {
+            volume = 100,
+            muted = false,
+        }
+    }
+}
+local autostartapps = {
+    "pactl set-sink-volume 1 "..audio.devices[1].volume.."%",
+    "pactl set-sink-volume 2 "..audio.devices[2].volume.."%",
+    profileConfigPath.."set-output 1",
+    "numlockx on",
+    "python "..profileConfigPath.."music-server.py"
+}
+-- Every App has: Name, icon path, and execute path
+local applist = {
+    [1] = {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
+    [2] = {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
+    [3] = {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
+    [4] = {name = "LMMS",icon = profileConfigPath.."newui/lmms.png",exec = "env QT_X11_NO_NATIVE_MENUBAR=1 lmms"},
+    [5] = {name = "Blender",icon = profileConfigPath.."newui/blender.png",exec = "/home/legostax/blender-2.78c/blender"},
+    [6] = {name = "Dragonframe",icon = profileConfigPath.."newui/df4.png",exec = profileConfigPath.."startdf4"},
+    [7] = {name = "Ardour",icon = profileConfigPath.."newui/ardour.png",exec = profileConfigPath.."startardour"},
+    [8] = {name = "Natron",icon = profileConfigPath.."newui/natron.png",exec = "/home/legostax/Natron2/Natron"},
+    [9] = {name = "Unreal Engine",icon = profileConfigPath.."newui/ue4.png",exec = "/home/legostax/UnrealEngine/Engine/Binaries/Linux/UE4Editor"},
+    [10] = {name = "Files",icon = profileConfigPath.."newui/thunar.png",exec = "thunar"}
+}
+-- }}}
 
 -- {{{ Error handling
 -- Check if awesome encountered an error during startup and fell back to
@@ -42,11 +88,10 @@ end
 -- {{{ Variable definitions
 -- Themes define colours, icons, font and wallpapers.
 --beautiful.init(awful.util.get_themes_dir() .. "default/theme.lua")
-profileConfigPath = "/home/legostax/.config/awesome/"
 beautiful.init(profileConfigPath.."themes/default/theme.lua")
 
 -- This is used later as the default terminal and editor to run.
-terminal = "xterm"
+terminal = "xfce4-terminal"
 editor = os.getenv("EDITOR") or "nano"
 editor_cmd = terminal .. " -e " .. editor
 
@@ -62,30 +107,9 @@ awful.layout.layouts = {
     awful.layout.suit.floating,
 }
 layouts = awful.layout.layouts
-audio = {
-    default = 1,
-    devices = {
-        [1] = {
-            volume = 65,
-            muted = false,
-        },
-        [2] = {
-            volume = 100,
-            muted = false,
-        }
-    }
-}
 tags = {
     names  = {"CHROME", "PRODUCITIVITY", "SOCIAL", "GAMES"},
     layout = { layouts[1], layouts[1], layouts[1], layouts[1]}
-}
-autostartapps = {
-    profileConfigPath.."changedw",
-    "pactl set-sink-volume 1 "..audio.devices[1].volume.."%",
-    "pactl set-sink-volume 2 "..audio.devices[2].volume.."%",
-    profileConfigPath.."set-output 1",
-    "numlockx on",
-    "python "..profileConfigPath.."music-server.py"
 }
 for i = 1,#autostartapps do
     awful.util.spawn(autostartapps[i])
@@ -106,15 +130,16 @@ local function client_menu_toggle_fn()
     end
 end
 
+local function notify_me(txt)
+    naughty.notify({text = txt})
+end
+
 -- Desktop right-click menu
 mymainmenu = awful.menu({ items = { { "Hotkeys", function() return false, hotkeys_popup.show_help end, beautiful.awesome_icon },
                                     { "Terminal", terminal },
                                     { "Restart", awesome.restart }
                                   }
                         })
-
--- Custom update_function for tasklist
-
 
 -- Lockdown for going to sleep @ 10:15PM
 local btcntdwn = 120
@@ -192,13 +217,15 @@ local function createAnimObject(obj, duration, endstep, functype)
     t:start()
 end
 
-local twbox = wibox({border_width = 0, ontop = true, visible = false, x = 1000, y = 980, width = 20, height = 20, screen = 1, bg = "#f00", fg = "#fff"})
+local twbox = wibox({border_width = 0, ontop = true, visible = false, x = 100, y = 100, width = 27, height = 2, screen = 1, bg = "#00f", fg = "#fff"})
 twbox.open = false
-twbox:connect_signal("mouse::enter", function()
-    if twbox.open then createAnimObject(twbox, 2, {x = 1000}, "inOutCubic")
-    else createAnimObject(twbox, 2, {x = 1100}, "inOutCubic") end
+local twtimer = timer({timeout = 2})
+twtimer:connect_signal("timeout", function()
+    if twbox.open then createAnimObject(twbox, 2, {x = 100, width = 27}, "inOutCubic")
+    else createAnimObject(twbox, 2, {x = 112, width = 4}, "inOutCubic") end
     twbox.open = not twbox.open
 end)
+--twtimer:start()
 
 -- Sysmenu
 local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = 1920, y = 890, width = 240, height = 150, screen = 1, bg = "#232729",  fg = "#fefefe"})
@@ -360,20 +387,6 @@ sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt,systray)
 appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = 408, width = 250, height = 632, screen = 1, bg = "#232729ff", fg = "#fefefe"})
 amanim = false
 
--- Every App has: Name, icon path, and execute path
-
-local applist = {
-    [1] = {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
-    [2] = {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
-    [3] = {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
-    [4] = {name = "LMMS",icon = profileConfigPath.."newui/lmms.png",exec = "env QT_X11_NO_NATIVE_MENUBAR=1 lmms"},
-    [5] = {name = "Blender",icon = profileConfigPath.."newui/blender.png",exec = "/home/legostax/blender-2.78c/blender"},
-    [6] = {name = "Dragonframe",icon = profileConfigPath.."newui/df4.png",exec = profileConfigPath.."startdf4"},
-    [7] = {name = "Ardour",icon = profileConfigPath.."newui/ardour.png",exec = profileConfigPath.."startardour"},
-    [8] = {name = "Natron",icon = profileConfigPath.."newui/natron.png",exec = "/home/legostax/Natron2/Natron"},
-    [9] = {name = "Unreal Engine",icon = profileConfigPath.."newui/ue4.png",exec = "/home/legostax/UnrealEngine/Engine/Binaries/Linux/UE4Editor"},
-    [10] = {name = "Files",icon = profileConfigPath.."newui/thunar.png",exec = "thunar"}
-}
 local applistdata = {}
 for i = 1,#applist do
     local ref = applist[i]
@@ -608,24 +621,90 @@ local tasklist_buttons = awful.util.table.join(
                                               awful.client.focus.byidx(-1)
                                           end))
 
-local function set_wallpaper(s)
-    -- Wallpaper
-    if beautiful.wallpaper then
-        local wallpaper = beautiful.wallpaper
-        -- If wallpaper is a function, call it with the screen
-        if type(wallpaper) == "function" then
-            wallpaper = wallpaper(s)
-        end
-        gears.wallpaper.maximized(wallpaper, s, true)
+local function wallpaperChanger(s)
+    local hr = tonumber(string.sub(os.date("%X"), 1, 2))
+    local min = tonumber(string.sub(os.date("%X"), 3, 4))
+    if hr >= 0 and hr <= 4 then --night
+        gears.wallpaper.maximized(wallpapers[4], s, true)
+    elseif hr >= 5 and hr <= 8 then -- morning
+        gears.wallpaper.maximized(wallpapers[1], s, true)
+    elseif hr >= 9 and hr <= 15 then -- day
+        gears.wallpaper.maximized(wallpapers[2], s, true)
+    elseif hr >= 16 and hr <= 18 then -- evening
+        gears.wallpaper.maximized(wallpapers[3], s, true)
+    elseif hr >= 19 and hr <= 23 then -- night
+        gears.wallpaper.maximized(wallpapers[4], s, true)
     end
 end
 
--- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
-screen.connect_signal("property::geometry", set_wallpaper)
+local wlpr_timer = timer({timeout = 60})
+wlpr_timer:connect_signal("timeout", function() wallpaperChanger(1) end)
+wlpr_timer:start()
 
+-- Tasklist stuffs
+local function list_update(w, buttons, label, data, objects)
+    -- update the widgets, creating them if needed
+    w:reset()
+    for i, o in ipairs(objects) do
+        local cache = data[o]
+        local ib, ibmm, tb, ibm, const
+        if cache then
+            ib = cache.ib
+            ibmm = cache.ibmm
+            tb = cache.tb
+            ibm = cache.ibm
+            const = cache.const
+        else
+            ib = wibox.widget.imagebox()
+            ib.forced_width = 32
+            ib.forced_height = 32
+            ibmm = wibox.container.margin(ib, 0, 0, 0, 2)
+            tb = wibox.widget.textbox()
+            ibm = wibox.container.margin(ibmm, 8, 0, 4, 0)
+            const = wibox.container.constraint(ibm, "min", 40)
+
+            ibm:buttons(common.create_buttons(buttons, o))
+
+            data[o] = {
+                ib  = ib,
+                ibmm = ibmm,
+                tb  = tb,
+                ibm = ibm,
+                const = const,
+            }
+        end
+
+        local text, bg, bg_image, icon, args = label(o, tb)
+
+        ibmm.color = bg
+        if icon then ib:set_image(icon)
+        else ibm:set_margins(0) end
+
+        w:add(const)
+   end
+   naughty.notify({text = "C", timeout = 0.01}) -- prevent drawing glitches when ForceFullCompositionPipeline = true in nvidia-settings
+end
+
+-- Wibar transparent/opaque function
+local function checkWibar(obj, s)
+    --notify_me("checkWibar")
+    local curclients = s.clients
+    obj.bg = "#00000088"
+    for _, c in pairs(curclients) do
+        --notify_me("iterating")
+        if c.maximized then
+            obj.bg = "#000"
+            break
+        end
+    end
+    obj:emit_signal("widget::redraw_needed")
+end
+
+-- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
+screen.connect_signal("property::geometry", wallpaperChanger)
 awful.screen.connect_for_each_screen(function(s)
     -- Wallpaper
-    set_wallpaper(s)
+    wallpaperChanger(s)
 
     -- Each screen has its own tag table.
     tags[s] = awful.tag(tags.names, s, tags.layout)
@@ -636,10 +715,13 @@ awful.screen.connect_for_each_screen(function(s)
     s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, taglist_buttons)
 
     -- Create a tasklist widget
-    s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, tasklist_buttons)
+    s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, tasklist_buttons, nil, list_update, wibox.layout.fixed.horizontal())
 
-    -- Create the wibox
-    s.mywibox = awful.wibar({ position = "bottom", screen = s, height = 40, bg = "#31373a" })
+    -- Create the wibox #31373a00
+    s.mywibox = awful.wibar({ position = "bottom", screen = s, height = 40, bg = "#00000088" })
+    -- Transparent on no maximized clients; opaque on 1 or more maximized clients
+    --checkWibar(s.mywibox, s)
+    s:connect_signal("tag::history::update", function() checkWibar(s.mywibox, s) end)
 
     -- Add widgets to the wibox
     s.mywibox:setup {
@@ -884,19 +966,19 @@ awful.rules.rules = {
       }, properties = { floating = true }},
 
     -- CHROME tag
-    {rule = {class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
+    {rule = {class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[1], maximized = true}},
     {rule = {class = "Firefox"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
     -- PRODUCTIVITY tag
-    {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
+    {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
+    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
     {rule = {class = "Dragonframe"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     {rule = {class = "Ardour-5.8.0"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
     {rule = {class = "UE4Editor"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     -- SOCIAL tag
-    {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
-    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
+    {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3], maximized = true}},
+    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3], maximized = false}},
     -- GAMES tag
     {rule = {class = "Steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
     {rule = {class = "steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}}, -- Big Picture mode
@@ -936,12 +1018,7 @@ client.connect_signal("manage", function (c)
         -- Prevent clients from being unreachable after screen count changes.
         awful.placement.no_offscreen(c)
     end
-    if awful.rules.match(c, {class = "Chrauncher"}) then
-        c.x = 577
-        c.y = 256
-        c.border_width = 1
-        c.border_color = "#8d8d8d"
-    end
+    checkWibar(c.screen.mywibox, c.screen)
 end)
 
 client.connect_signal("unmanage", function (c)
@@ -958,6 +1035,7 @@ client.connect_signal("unmanage", function (c)
         end
     end
     tagline.visible = val
+    checkWibar(c.screen.mywibox, c.screen)
 end)
 
 client.connect_signal("property::fullscreen", function(c)
@@ -967,6 +1045,9 @@ client.connect_signal("property::fullscreen", function(c)
         tagline.visible = true
     end
 end)
+
+client.connect_signal("property::maximized", function(c) checkWibar(c.screen.mywibox, c.screen) end)
+client.connect_signal("property::minimized", function(c) checkWibar(c.screen.mywibox, c.screen) end)
 
 -- Add a titlebar if titlebars_enabled is set to true in the rules.
 client.connect_signal("request::titlebars", function(c)

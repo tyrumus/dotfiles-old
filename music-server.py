@@ -7,7 +7,7 @@ from threading import Thread
 from random import shuffle
 from os import listdir
 from os import getpid
-from os.path import isfile, join
+from os.path import isfile, join, expanduser
 
 pygame.init()
 pygame.mixer.init()
@@ -17,9 +17,9 @@ isPlaying = False
 isPaused = False
 isRunning = False
 musicVolume = 0.25 # between 0 and 1
-musicPath = "/home/legostax/Music/wmplaylist/"
-pidPath = "/home/legostax/.config/awesome/.pymusic-serverpid.txt"
-songPath = "/home/legostax/.config/awesome/.pymusic-song.txt"
+musicPath = expanduser("~").."/Music/wmplaylist/"
+pidPath = expanduser("~").."/.config/awesome/.pymusic-serverpid.txt"
+songPath = expanduser("~").."/.config/awesome/.pymusic-song.txt"
 procpid = getpid()
 currentsong = 0
 
