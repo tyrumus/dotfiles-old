@@ -174,7 +174,7 @@ bedtime:connect_signal("timeout", function()
         end
     end
 end)
-bedtime:start()
+--bedtime:start()
 
 -- Tween.lua testing
 local tween = require("tween")
