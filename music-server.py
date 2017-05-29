@@ -17,9 +17,9 @@ isPlaying = False
 isPaused = False
 isRunning = False
 musicVolume = 0.25 # between 0 and 1
-musicPath = expanduser("~").."/Music/wmplaylist/"
-pidPath = expanduser("~").."/.config/awesome/.pymusic-serverpid.txt"
-songPath = expanduser("~").."/.config/awesome/.pymusic-song.txt"
+musicPath = "".join([expanduser("~"), "/Music/wmplaylist/"])
+pidPath = "".join([expanduser("~"), "/.config/awesome/.pymusic-serverpid.txt"])
+songPath = "".join([expanduser("~"), "/.config/awesome/.pymusic-song.txt"])
 procpid = getpid()
 currentsong = 0
 
