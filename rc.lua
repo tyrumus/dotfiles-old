@@ -17,7 +17,9 @@ local dpi = require("beautiful").xresources.apply_dpi
 
 
 -- {{{ Edit these variables to your liking
-profileConfigPath = "/home/legostax/.config/awesome/"
+profileConfigPath = awful.util.get_configuration_dir()
+screenWidth = 1920
+screenHeight = 1080
 -- Wallpapers: [1] = morning, [2] = daytime, [3] = evening, [4] = night
 wallpapers = {
     profileConfigPath.."wallpapers/morning.png",
@@ -228,12 +230,12 @@ end)
 --twtimer:start()
 
 -- Sysmenu
-local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = 1920, y = 890, width = 240, height = 150, screen = 1, bg = "#232729",  fg = "#fefefe"})
+local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = screenWidth, y = screenHeight-190, width = 240, height = 150, screen = 1, bg = "#232729",  fg = "#fefefe"})
 sysmenu.open = false
 
 function toggleSysmenu()
-    if sysmenu.open then createAnimObject(sysmenu, 4, {x = 1920}, "inOutCubic")
-    else createAnimObject(sysmenu, 4, {x = 1680}, "inOutCubic") end
+    if sysmenu.open then createAnimObject(sysmenu, 4, {x = screenWidth}, "inOutCubic")
+    else createAnimObject(sysmenu, 4, {x = screenWidth-240}, "inOutCubic") end
     sysmenu.open = not sysmenu.open
 end
 
@@ -384,7 +386,7 @@ sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt,systray)
 
 -- App list panel
 -- Apps from top to bottom: Atom, Steam, Discord, LMMS, Blender, Dragonframe, Ardour, Natron, Unreal Engine, Thunar
-appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = 408, width = 250, height = 632, screen = 1, bg = "#232729ff", fg = "#fefefe"})
+appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = screenHeight-((#applist * 58)+92), width = 250, height = (#applist * 58)+52, screen = 1, bg = "#232729ff", fg = "#fefefe"})
 amanim = false
 
 local applistdata = {}
@@ -503,7 +505,7 @@ end)
 
 
 -- Tag underline
-tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = 1723, y = 1078, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
+tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-197, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
 tloldtag = 1
 tlanim = false
 tagline:connect_signal("button::press", function(_,_,_,b)
@@ -529,20 +531,20 @@ awful.screen.focused():connect_signal("tag::history::update", function()
     tagline.visible = val
     if awful.screen.focused().tags[1].selected then
         if tagline.visible then -- if visible, commence animation
-            animateTagline(1723)
-        else tagline.x = 1723 end
+            animateTagline(screenWidth-197)
+        else tagline.x = screenWidth-197 end
     elseif awful.screen.focused().tags[2].selected then
         if tagline.visible then
-            animateTagline(1757)
-        else tagline.x = 1757 end
+            animateTagline(screenWidth-163)
+        else tagline.x = screenWidth-163 end
     elseif awful.screen.focused().tags[3].selected then
         if tagline.visible then
-            animateTagline(1791)
-        else tagline.x = 1791 end
+            animateTagline(screenWidth-129)
+        else tagline.x = screenWidth-129 end
     elseif awful.screen.focused().tags[4].selected then
         if tagline.visible then
-            animateTagline(1827)
-        else tagline.x = 1827 end
+            animateTagline(screenWidth-93)
+        else tagline.x = screenWidth-93 end
     end
 end)
 

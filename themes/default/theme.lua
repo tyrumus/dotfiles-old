@@ -8,9 +8,10 @@ local dpi = xresources.apply_dpi
 
 local gfs = require("gears.filesystem")
 local themes_path = gfs.get_themes_dir()
+local util = require("awful.util")
 
 local theme = {}
-profileConfigPath = "/home/legostax/.config/awesome/"
+profileConfigPath = util.get_configuration_dir()
 
 theme.font          = "Roboto 10"
 
@@ -30,7 +31,7 @@ theme.fg_urgent     = "#ffffff"
 theme.fg_minimize   = "#ffffff"
 
 theme.useless_gap   = 0
-theme.border_width  = dpi(1)
+theme.border_width  = 0
 theme.border_normal = "#8d8d8d"
 theme.border_focus  = "#535d6c"
 theme.border_marked = "#91231c"
