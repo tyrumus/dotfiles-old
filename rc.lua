@@ -15,6 +15,10 @@ local hotkeys_popup = require("awful.hotkeys_popup").widget
 local common = require("awful.widget.common")
 local dpi = require("beautiful").xresources.apply_dpi
 
+-- Enable hotkeys help widget for VIM and other apps
+-- when client with a matching name is opened:
+require("awful.hotkeys_popup.keys")
+
 
 -- {{{ Edit these variables to your liking
 profileConfigPath = awful.util.get_configuration_dir()
@@ -49,16 +53,15 @@ local autostartapps = {
 }
 -- Every App has: Name, icon path, and execute path
 local applist = {
-    [1] = {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
-    [2] = {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
-    [3] = {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
-    [4] = {name = "LMMS",icon = profileConfigPath.."newui/lmms.png",exec = "env QT_X11_NO_NATIVE_MENUBAR=1 lmms"},
-    [5] = {name = "Blender",icon = profileConfigPath.."newui/blender.png",exec = "/home/legostax/blender-2.78c/blender"},
-    [6] = {name = "Dragonframe",icon = profileConfigPath.."newui/df4.png",exec = profileConfigPath.."startdf4"},
-    [7] = {name = "Ardour",icon = profileConfigPath.."newui/ardour.png",exec = profileConfigPath.."startardour"},
-    [8] = {name = "Natron",icon = profileConfigPath.."newui/natron.png",exec = "/home/legostax/Natron2/Natron"},
-    [9] = {name = "Unreal Engine",icon = profileConfigPath.."newui/ue4.png",exec = "/home/legostax/UnrealEngine/Engine/Binaries/Linux/UE4Editor"},
-    [10] = {name = "Files",icon = profileConfigPath.."newui/thunar.png",exec = "thunar"}
+    {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
+    {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
+    {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
+    {name = "LMMS",icon = profileConfigPath.."newui/lmms.png",exec = "env QT_X11_NO_NATIVE_MENUBAR=1 lmms"},
+    {name = "Blender",icon = profileConfigPath.."newui/blender.png",exec = "/home/legostax/blender-2.78c/blender"},
+    {name = "Dragonframe",icon = profileConfigPath.."newui/df4.png",exec = profileConfigPath.."startdf4"},
+    {name = "Ardour",icon = profileConfigPath.."newui/ardour.png",exec = profileConfigPath.."startardour"},
+    {name = "Natron",icon = profileConfigPath.."newui/natron.png",exec = "Natron"},
+    {name = "Files",icon = profileConfigPath.."newui/thunar.png",exec = "thunar"}
 }
 -- }}}
 
@@ -105,13 +108,10 @@ editor_cmd = terminal .. " -e " .. editor
 modkey = "Mod4"
 
 -- Table of layouts to cover with awful.layout.inc, order matters.
-awful.layout.layouts = {
-    awful.layout.suit.floating,
-}
-layouts = awful.layout.layouts
+flayout = awful.layout.suit.floating
 tags = {
     names  = {"CHROME", "PRODUCITIVITY", "SOCIAL", "GAMES"},
-    layout = { layouts[1], layouts[1], layouts[1], layouts[1]}
+    layout = { flayout, flayout, flayout, flayout }
 }
 for i = 1,#autostartapps do
     awful.util.spawn(autostartapps[i])
@@ -505,7 +505,7 @@ end)
 
 
 -- Tag underline
-tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-197, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
+tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-202, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
 tloldtag = 1
 tlanim = false
 tagline:connect_signal("button::press", function(_,_,_,b)
@@ -519,6 +519,7 @@ function animateTagline(newtagpos)
 end
 
 -- X1: 1723, X2: 1757, X3: 1791, X4: 1827
+-- X1: -197, X2: -163, X3: -129, X4: -93
 awful.screen.focused():connect_signal("tag::history::update", function()
     local curclients = awful.screen.focused().selected_tag:clients()
     local val = true
@@ -531,20 +532,20 @@ awful.screen.focused():connect_signal("tag::history::update", function()
     tagline.visible = val
     if awful.screen.focused().tags[1].selected then
         if tagline.visible then -- if visible, commence animation
-            animateTagline(screenWidth-197)
-        else tagline.x = screenWidth-197 end
+            animateTagline(screenWidth-202)
+        else tagline.x = screenWidth-202 end
     elseif awful.screen.focused().tags[2].selected then
         if tagline.visible then
-            animateTagline(screenWidth-163)
-        else tagline.x = screenWidth-163 end
+            animateTagline(screenWidth-168)
+        else tagline.x = screenWidth-168 end
     elseif awful.screen.focused().tags[3].selected then
         if tagline.visible then
-            animateTagline(screenWidth-129)
-        else tagline.x = screenWidth-129 end
+            animateTagline(screenWidth-134)
+        else tagline.x = screenWidth-134 end
     elseif awful.screen.focused().tags[4].selected then
         if tagline.visible then
-            animateTagline(screenWidth-93)
-        else tagline.x = screenWidth-93 end
+            animateTagline(screenWidth-98)
+        else tagline.x = screenWidth-98 end
     end
 end)
 
@@ -811,9 +812,9 @@ globalkeys = awful.util.table.join(
     end, {description = "toggle volume mute", group = "awesome"}),
     awful.key({}, "#148", function() awful.util.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
     awful.key({}, "#150", function() awful.util.spawn("dm-tool lock") awful.util.spawn("systemctl suspend") end, {description = "sleep/suspend", group = "awesome"}),
-    awful.key({modkey, "Control"}, "p", togglePlayPause, {description = "Play/Pause music", group = "music"}),
-    awful.key({modkey, "Control"}, "Left", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
-    awful.key({modkey, "Control"}, "Right", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
+    awful.key({}, "#172", togglePlayPause, {description = "Play/pause music", group = "music"}),
+    awful.key({}, "#171", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
+    awful.key({}, "#173", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
     awful.key({modkey}, "e", toggleLauncherImg, {description = "open app menu", group = "awesome"}),
     awful.key({modkey}, "w", toggleSysmenu, {description = "open sys menu", group = "awesome"}),
 
