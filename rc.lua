@@ -2,6 +2,7 @@
 local gears = require("gears")
 local timer = require("gears.timer")
 local awful = require("awful")
+local keygrabber = require("keygrabber")
 require("awful.autofocus")
 -- Widget and layout library
 local wibox = require("wibox")
@@ -21,17 +22,18 @@ require("awful.hotkeys_popup.keys")
 
 
 -- {{{ Edit these variables to your liking
-profileConfigPath = awful.util.get_configuration_dir()
-screenWidth = 1920
-screenHeight = 1080
+local profileConfigPath = awful.util.get_configuration_dir()
+local screenWidth = 1920
+local screenHeight = 1080
+local screenLockPin = "0987"
 -- Wallpapers: [1] = morning, [2] = daytime, [3] = evening, [4] = night
-wallpapers = {
+local wallpapers = {
     profileConfigPath.."wallpapers/morning.png",
     profileConfigPath.."wallpapers/day.png",
     profileConfigPath.."wallpapers/evening.jpg",
     profileConfigPath.."wallpapers/night.jpg"
 }
-audio = {
+local audio = {
     default = 1,
     devices = {
         [1] = { -- these entry numbers reflect the number of the pulse audio sinks the table entries refer to
@@ -136,6 +138,17 @@ local function notify_me(txt)
     naughty.notify({text = txt})
 end
 
+local function exists(path)
+    local f = io.open(path, "r")
+    if f ~= nil then io.close(f) return true else return false end
+end
+
+local clock = os.clock
+local function sleep(n)  -- seconds
+    local t0 = clock()
+    while clock() - t0 <= n do end
+end
+
 -- Desktop right-click menu
 mymainmenu = awful.menu({ items = { { "Hotkeys", function() return false, hotkeys_popup.show_help end, beautiful.awesome_icon },
                                     { "Terminal", terminal },
@@ -182,8 +195,8 @@ end)
 local tween = require("tween")
 
 -- TODO: Build function that returns interruptable animation object
--- createAnimObject( object, duration, end_step, function_type )
-local function createAnimObject(obj, duration, endstep, functype)
+-- createAnimObject( object, duration, end_step, function_type, end_callback )
+local function createAnimObject(obj, duration, endstep, functype, end_callback)
     -- check if animation is running
     if obj.anim then obj:emit_signal("interrupt", obj) end
     -- create timer at 60 fps
@@ -191,8 +204,7 @@ local function createAnimObject(obj, duration, endstep, functype)
     -- determine variable name to animate
     local val = nil
     for k,v in pairs(endstep) do -- only need to iterate once for our purposes
-        val = k -- we will only every animate one value per object
-        break
+        val = k -- we will only watch one value per object
     end
     -- create self-destructing animation-stop callback function
     cback = function(obj)
@@ -211,6 +223,7 @@ local function createAnimObject(obj, duration, endstep, functype)
             t:stop()
             cback(obj)
             obj.anim = false
+            if end_callback then end_callback() end
         end
     end)
     -- start animation
@@ -220,6 +233,8 @@ local function createAnimObject(obj, duration, endstep, functype)
 end
 
 local twbox = wibox({border_width = 0, ontop = true, visible = false, x = 100, y = 100, width = 27, height = 2, screen = 1, bg = "#00f", fg = "#fff"})
+--createAnimObject(twbox, 500, {bg = "#0f0"}, "inOutCubic", function() notify_me("finished") end)
+--notify_me(gears.color.parse_color(twbox.bg))
 twbox.open = false
 local twtimer = timer({timeout = 2})
 twtimer:connect_signal("timeout", function()
@@ -505,7 +520,7 @@ end)
 
 
 -- Tag underline
-tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-202, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
+tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-197, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
 tloldtag = 1
 tlanim = false
 tagline:connect_signal("button::press", function(_,_,_,b)
@@ -532,20 +547,20 @@ awful.screen.focused():connect_signal("tag::history::update", function()
     tagline.visible = val
     if awful.screen.focused().tags[1].selected then
         if tagline.visible then -- if visible, commence animation
-            animateTagline(screenWidth-202)
-        else tagline.x = screenWidth-202 end
+            animateTagline(screenWidth-197)
+        else tagline.x = screenWidth-197 end
     elseif awful.screen.focused().tags[2].selected then
         if tagline.visible then
-            animateTagline(screenWidth-168)
-        else tagline.x = screenWidth-168 end
+            animateTagline(screenWidth-163)
+        else tagline.x = screenWidth-163 end
     elseif awful.screen.focused().tags[3].selected then
         if tagline.visible then
-            animateTagline(screenWidth-134)
-        else tagline.x = screenWidth-134 end
+            animateTagline(screenWidth-129)
+        else tagline.x = screenWidth-129 end
     elseif awful.screen.focused().tags[4].selected then
         if tagline.visible then
-            animateTagline(screenWidth-98)
-        else tagline.x = screenWidth-98 end
+            animateTagline(screenWidth-93)
+        else tagline.x = screenWidth-93 end
     end
 end)
 
@@ -578,11 +593,97 @@ mytextclock_t = awful.tooltip({
     delay_show = 1
 })
 
-
+lkscrnw = wibox({border_width = 0, ontop = true, visible = false, type = "splash", x = 0, y = 0, width = screenWidth, height = screenHeight, screen = 1, bg = "#0f0", fg = "#fefefe"})
+local profilepic = wibox.widget.imagebox(profileConfigPath.."../../.face")
+profilepic.forced_width = 400
+profilepic.forced_height = 400
+local imgarc = wibox.container.arcchart(profilepic)
+imgarc.forced_width = 450
+imgarc.forced_height = 450
+imgarc.paddings = 0
+imgarc.min_value = 0
+imgarc.max_value = 100
+-- Yellow1: #ffd734, Red1: #de232f
+local imgarcy, imgarcr = "#ffd734", "#de232f"
+imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+imgarc.thickness = 5
+imgarc.start_angle = 0.5*math.pi
+imgarc.bg = "#aaa"
+imgarc.border_width = 0
+imgarc.values = {25, 25, 25, 25}
+local derptxt = wibox.container.background(imgarc, "#44444400")
+derptxt.point = {x = screenWidth/2 - 450/2, y = screenHeight/2 - 450/2}
+local lkimg = wibox.container.background(wibox.layout.manual(derptxt))
+lkscrnw.widget = lkimg
+screenLocked = false
+local inputPin = ""
+local function lockScreen(lcback)
+    if not screenLocked then
+        screenLocked = true
+        local rand = math.random() -- prevent previous lock image from being loaded
+        awful.spawn.easy_async_with_shell("scrot -e 'mv $f "..profileConfigPath.."lk.png'; convert "..profileConfigPath.."lk.png -blur 0x12 matte "..profileConfigPath.."lk-img-"..rand..".png", function()
+                lkimg.bgimage = gears.surface.load(profileConfigPath.."lk-img-"..rand..".png")
+                lkimg:emit_signal("widget::redraw_needed")
+                lkscrnw.visible = true
+                lkscrnw:emit_signal("widget::redraw_needed")
+                local acceptInput = true
+                keygrabber.run(function(mod, key, event)
+                    if event == "release" and acceptInput then
+                        if key == "0" or key == "1" or key == "2" or key == "3" or key == "4" or key == "5" or key == "6" or key == "7" or key == "8" or key == "9" then
+                            inputPin = inputPin .. key
+                            if inputPin:len() == 4 then
+                                imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
+                                imgarc:emit_signal("widget::redraw_needed")
+                                if inputPin == screenLockPin then
+                                    inputPin = ""
+                                    lkimg.bgimage = profileConfigPath.."wallpapers/evening.jpg"
+                                    lkimg:emit_signal("widget::redraw_needed")
+                                    lkscrnw.visible = false
+                                    lkscrnw:emit_signal("widget::redraw_needed")
+                                    awful.util.spawn_with_shell("rm "..profileConfigPath.."lk-img-"..rand..".png; rm "..profileConfigPath.."lk.png")
+                                    screenLocked = false
+                                    keygrabber.stop()
+                                else
+                                    acceptInput = false
+                                    imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
+                                    imgarc:emit_signal("widget::redraw_needed")
+                                    local t = timer({timeout = 2})
+                                    t:connect_signal("timeout", function()
+                                        t:stop()
+                                        acceptInput = true
+                                        inputPin = ""
+                                        imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+                                        imgarc:emit_signal("widget::redraw_needed")
+                                    end)
+                                    t:start()
+                                end
+                            end
+                        elseif key == "BackSpace" and inputPin:len() > 0 then
+                            inputPin = string.sub(inputPin, 1, inputPin:len()-1)
+                        end
+                        if inputPin:len() == 0 then
+                            imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+                            imgarc:emit_signal("widget::redraw_needed")
+                        elseif inputPin:len() == 1 then
+                            imgarc.colors = {imgarcy, imgarcr, imgarcr, imgarcr}
+                            imgarc:emit_signal("widget::redraw_needed")
+                        elseif inputPin:len() == 2 then
+                            imgarc.colors = {imgarcy, imgarcy, imgarcr, imgarcr}
+                            imgarc:emit_signal("widget::redraw_needed")
+                        elseif inputPin:len() == 3 then
+                            imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcr}
+                            imgarc:emit_signal("widget::redraw_needed")
+                        end
+                    end
+                end)
+                if lcback then lcback() end
+        end)
+    end
+end
 
 
 -- Create a wibox for each screen and add it
-local taglist_buttons = awful.util.table.join(
+local taglist_buttons = gears.table.join(
                     awful.button({ }, 1, function(t) t:view_only() end),
                     awful.button({ modkey }, 1, function(t)
                                               if client.focus then
@@ -599,7 +700,7 @@ local taglist_buttons = awful.util.table.join(
                     awful.button({ }, 4, function(t) awful.tag.viewprev(t.screen) end)
                 )
 
-local tasklist_buttons = awful.util.table.join(
+local tasklist_buttons = gears.table.join(
                      awful.button({ }, 1, function (c)
                                               if c == client.focus then
                                                   c.minimized = true
@@ -618,10 +719,10 @@ local tasklist_buttons = awful.util.table.join(
                                           end),
                      --awful.button({ }, 3, client_menu_toggle_fn()),
                      awful.button({ }, 4, function ()
-                                              awful.client.focus.byidx(1)
+                                              awful.client.focus.byidx(-1)
                                           end),
                      awful.button({ }, 5, function ()
-                                              awful.client.focus.byidx(-1)
+                                              awful.client.focus.byidx(1)
                                           end))
 
 local function wallpaperChanger(s)
@@ -776,9 +877,9 @@ root.buttons(awful.util.table.join(
 -- }}}
 
 -- {{{ Key bindings
-globalkeys = awful.util.table.join(
-    awful.key({modkey}, "l", function() awful.util.spawn("dm-tool lock") end, {description = "lockscreen", group = "awesome"}),
-    awful.key({}, "Print", function() awful.util.spawn_with_shell("scrot -e 'mv $f ~/Screenshots/'") end, {description = "take screenshot", group = "awesome"}),
+globalkeys = gears.table.join(
+    awful.key({modkey}, "l", function() lockScreen() end, {description = "lockscreen", group = "awesome"}),
+    awful.key({}, "Print", function() awful.util.spawn_with_shell("scrot -e 'mv $f ~/Screenshots/'") notify_me("Screenshot saved.") end, {description = "take screenshot", group = "awesome"}),
     awful.key({"Control", modkey}, "Delete", function() awful.util.spawn("xfce4-taskmanager") end, {description = "open task manager", group = "awesome"}),
     awful.key({}, "#123", function()
         if audio.devices[audio.default].volume < 100 then
@@ -810,8 +911,8 @@ globalkeys = awful.util.table.join(
             myvolume:emit_signal("volumechange")
         end
     end, {description = "toggle volume mute", group = "awesome"}),
-    awful.key({}, "#148", function() awful.util.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
-    awful.key({}, "#150", function() awful.util.spawn("dm-tool lock") awful.util.spawn("systemctl suspend") end, {description = "sleep/suspend", group = "awesome"}),
+    awful.key({modkey}, "F1", function() awful.util.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
+    awful.key({modkey}, "F2", function() lockScreen(function() awful.util.spawn("systemctl suspend") end) end, {description = "sleep/suspend", group = "awesome"}),
     awful.key({}, "#172", togglePlayPause, {description = "Play/pause music", group = "music"}),
     awful.key({}, "#171", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
     awful.key({}, "#173", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
@@ -871,7 +972,7 @@ globalkeys = awful.util.table.join(
     end, {description = "open default tag program", group = "tag"})
 )
 
-clientkeys = awful.util.table.join(
+clientkeys = gears.table.join(
     awful.key({ modkey,           }, "f",
         function (c)
             c.fullscreen = not c.fullscreen
@@ -892,7 +993,7 @@ clientkeys = awful.util.table.join(
 -- Be careful: we use keycodes to make it works on any keyboard layout.
 -- This should map on the top row of your keyboard, usually 1 to 9.
 for i = 1, 4 do
-    globalkeys = awful.util.table.join(globalkeys,
+    globalkeys = gears.table.join(globalkeys,
         -- View tag only.
         awful.key({ modkey }, "#" .. i + 9,
                   function ()
@@ -917,7 +1018,7 @@ for i = 1, 4 do
     )
 end
 
-clientbuttons = awful.util.table.join(
+clientbuttons = gears.table.join(
     awful.button({ }, 1, function (c) client.focus = c; c:raise() end),
     awful.button({ modkey }, 1, awful.mouse.client.move),
     awful.button({ modkey }, 3, awful.mouse.client.resize))
@@ -969,21 +1070,21 @@ awful.rules.rules = {
       }, properties = { floating = true }},
 
     -- CHROME tag
-    {rule = {class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[1], maximized = true}},
+    {rule = {class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
     {rule = {class = "Firefox"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
     -- PRODUCTIVITY tag
-    {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
-    {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
-    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
+    {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     {rule = {class = "Dragonframe"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     {rule = {class = "Ardour-5.8.0"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2], maximized = true}},
+    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     {rule = {class = "UE4Editor"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
     -- SOCIAL tag
-    {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3], maximized = true}},
-    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3], maximized = false}},
+    {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
+    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
     -- GAMES tag
-    {rule = {class = "Steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
+    {rule = {class = "Steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4], maximized = true}},
     {rule = {class = "steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}}, -- Big Picture mode
     {rule = {name = "SUPERHOT"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
     {rule = {class = "Terraria.bin.x86"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
@@ -1025,10 +1126,6 @@ client.connect_signal("manage", function (c)
 end)
 
 client.connect_signal("unmanage", function (c)
-    if awful.rules.match(c, {class = "Chrauncher"}) and launcherOpen then
-        toggleLauncherImg()
-    end
-
     local curclients = awful.screen.focused().selected_tag:clients()
     local val = true
     for _, c in ipairs(curclients) do
@@ -1056,7 +1153,7 @@ client.connect_signal("property::minimized", function(c) checkWibar(c.screen.myw
 client.connect_signal("request::titlebars", function(c)
     if not awful.rules.match(c, {class = "Chrauncher"}) then
         -- buttons for the titlebar
-        local buttons = awful.util.table.join(
+        local buttons = gears.table.join(
             awful.button({ }, 1, function()
                 client.focus = c
                 c:raise()
@@ -1072,7 +1169,7 @@ client.connect_signal("request::titlebars", function(c)
         titlebaricon.forced_height = 20
         titlebaricon.forced_width = 20
 
-        local maximized = wibox.widget.imagebox(profileConfigPath.."themes/default/titlebar/maximized_focus_active3.png",false)
+        --[[local maximized = wibox.widget.imagebox(profileConfigPath.."themes/default/titlebar/maximized_focus_active3.png",false)
         c:connect_signal("focus",function()
             maximized.image = "themes/default/titlebar/maximized_focus_active3.png"
         end)
@@ -1084,7 +1181,7 @@ client.connect_signal("request::titlebars", function(c)
         end)
         c:connect_signal("mouse::leave",function()
             maximized.image = "themes/default/titlebar/maximized_focus_active3.png"
-        end)
+        end)]]--
 
 
         titlebartext = wibox.container.margin(awful.titlebar.widget.titlewidget(c),5)
