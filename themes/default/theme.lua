@@ -8,12 +8,11 @@ local dpi = xresources.apply_dpi
 
 local gfs = require("gears.filesystem")
 local themes_path = gfs.get_themes_dir()
-local util = require("awful.util")
 
 local theme = {}
-profileConfigPath = util.get_configuration_dir()
+profileConfigPath = gfs.get_configuration_dir()
 
-theme.font          = "Roboto 10"
+theme.font          = "Roboto 9"
 
 theme.bg_normal     = "#66666644"
 theme.window_bg_normal = "#3d4346"
