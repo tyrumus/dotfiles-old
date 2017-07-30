@@ -16,4 +16,6 @@ Right-click on the desktop and click Hotkeys to see a list of all of the keybind
 
 The music player pulls songs from `~/Music/wmplaylist/`
 
+Ensure your `~/.face` is at least 400x400 in size for the lockscreen to look right.
+
 Poke around for other things to tweak to your liking. Have fun!
