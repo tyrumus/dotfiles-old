@@ -22,34 +22,33 @@ require("awful.hotkeys_popup.keys")
 
 
 -- {{{ Edit these variables to your liking
-local profileConfigPath = awful.util.get_configuration_dir()
-local screenWidth = 1920
-local screenHeight = 1080
-local screenLockPin = "0987"
+local profileConfigPath = gears.filesystem.get_configuration_dir()
+local screenLockPin = "1234"
 -- Wallpapers: [1] = morning, [2] = daytime, [3] = evening, [4] = night
 local wallpapers = {
     profileConfigPath.."wallpapers/morning.png",
     profileConfigPath.."wallpapers/day.png",
-    profileConfigPath.."wallpapers/evening.jpg",
+    profileConfigPath.."wallpapers/astro-parking.png",
     profileConfigPath.."wallpapers/night.jpg"
 }
 local audio = {
-    default = 1,
+    default = 2,
     devices = {
         [1] = { -- these entry numbers reflect the number of the pulse audio sinks the table entries refer to
             volume = 65,
             muted = false,
         },
         [2] = {
-            volume = 100,
+            volume = 50,
             muted = false,
         }
     }
 }
 local autostartapps = {
+    "xrandr --output DP-2 --mode 1920x1080 --rate 144.00 --primary --output DP-4 --right-of DP-2 --mode 1920x1080 --rate 144.00",
     "pactl set-sink-volume 1 "..audio.devices[1].volume.."%",
     "pactl set-sink-volume 2 "..audio.devices[2].volume.."%",
-    profileConfigPath.."set-output 1",
+    profileConfigPath.."set-output "..audio.default,
     "numlockx on",
     "python "..profileConfigPath.."music-server.py"
 }
@@ -58,6 +57,7 @@ local applist = {
     {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
     {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
     {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
+    {name = "Keybase",icon = profileConfigPath.."newui/keybase.png",exec = "/usr/bin/run_keybase"},
     {name = "LMMS",icon = profileConfigPath.."newui/lmms.png",exec = "env QT_X11_NO_NATIVE_MENUBAR=1 lmms"},
     {name = "Blender",icon = profileConfigPath.."newui/blender.png",exec = "/home/legostax/blender-2.78c/blender"},
     {name = "Dragonframe",icon = profileConfigPath.."newui/df4.png",exec = profileConfigPath.."startdf4"},
@@ -112,15 +112,22 @@ modkey = "Mod4"
 -- Table of layouts to cover with awful.layout.inc, order matters.
 flayout = awful.layout.suit.floating
 tags = {
-    names  = {"CHROME", "PRODUCITIVITY", "SOCIAL", "GAMES"},
+    names  = {"CHROME", "PRODUCTIVITY", "SOCIAL", "GAMES"},
     layout = { flayout, flayout, flayout, flayout }
 }
 for i = 1,#autostartapps do
-    awful.util.spawn(autostartapps[i])
+    awful.spawn(autostartapps[i])
 end
 -- }}}
 
--- Helper function
+-- Helper functions
+local screenCount = screen:count()
+local grtx, grty = 0, 0
+for s in screen do -- this function only works when screens are setup horizontally
+    -- calculate greatest resolution
+    grtx = grtx + s.geometry.width
+    if s.index == screen:count() then grty = s.geometry.height end
+end
 local function client_menu_toggle_fn()
     local instance = nil
 
@@ -189,12 +196,11 @@ bedtime:connect_signal("timeout", function()
         end
     end
 end)
---bedtime:start()
+bedtime:start()
 
 -- Tween.lua testing
 local tween = require("tween")
 
--- TODO: Build function that returns interruptable animation object
 -- createAnimObject( object, duration, end_step, function_type, end_callback )
 local function createAnimObject(obj, duration, endstep, functype, end_callback)
     -- check if animation is running
@@ -245,22 +251,26 @@ end)
 --twtimer:start()
 
 -- Sysmenu
-local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = screenWidth, y = screenHeight-190, width = 240, height = 150, screen = 1, bg = "#232729",  fg = "#fefefe"})
+local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = grtx, y = grty-190, width = 240, height = 150, screen = screen:count(), bg = "#232729",  fg = "#fefefe"})
 sysmenu.open = false
 
 function toggleSysmenu()
-    if sysmenu.open then createAnimObject(sysmenu, 4, {x = screenWidth}, "inOutCubic")
-    else createAnimObject(sysmenu, 4, {x = screenWidth-240}, "inOutCubic") end
+    if sysmenu.open then createAnimObject(sysmenu, 4, {x = grtx}, "inCubic")
+    else createAnimObject(sysmenu, 4, {x = grtx-240}, "outCubic") end
     sysmenu.open = not sysmenu.open
 end
 
 -- Create a speakers/headset switch widget
 switchphones = wibox.widget.imagebox(profileConfigPath.."newui/headphones.png", false)
 switchspeakers = wibox.widget.imagebox(profileConfigPath.."newui/speakers.png", false)
-switchspeakers.opacity = 0
+if audio.default == 1 then
+    switchspeakers.opacity = 0
+elseif audio.default == 2 then
+    switchphones.opacity = 0
+end
 local swlay = wibox.layout.stack()
 swlay:add(switchphones,switchspeakers)
-local swmarg = wibox.container.margin(swlay,8,0,13)
+local swmarg = wibox.container.margin(swlay,15,0,10)
 
 function animateSwitch(spkrtoph)
     if spkrtoph then
@@ -288,7 +298,8 @@ vslider.minimum = 1
 vslider.maximum = 100
 vslider.forced_width = 150
 vslider.forced_height = 30
-local slmarg = wibox.container.margin(vslider,20,0,10)
+local slmarg = wibox.container.margin(vslider,10,0,10)
+local vsliderListen = true
 
 function toggleSound()
     if audio.default == 1 then
@@ -299,7 +310,11 @@ function toggleSound()
         animateSwitch(true)
     end
     awful.util.spawn(profileConfigPath.."set-output "..audio.default)
-    vslider.value = audio.devices[audio.default].volume
+    vsliderListen = false
+    createAnimObject(vslider, 4, {value = audio.devices[audio.default].volume}, "inOutCubic", function()
+        vsliderListen = true
+    end)
+    --vslider.value = audio.devices[audio.default].volume
     myvolume:emit_signal("volumechange")
 end
 
@@ -309,12 +324,12 @@ end)
 
 local vtxt = wibox.widget.textbox("<span color='#aaa'>"..audio.devices[audio.default].volume.."%</span>")
 local vtxtmarg = wibox.container.margin(vtxt,10,0,10)
-local slcont = wibox.layout.fixed.horizontal(slmarg,vtxtmarg,swmarg)
+local slcont = wibox.layout.fixed.horizontal(swmarg,slmarg,vtxtmarg)
 
 vslider:connect_signal("property::value", function()
-    if not audio.devices[audio.default].muted then
+    if not audio.devices[audio.default].muted and vsliderListen then
         audio.devices[audio.default].volume = vslider.value
-        awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ "..audio.devices[audio.default].volume.."%")
+        awful.util.spawn("pactl set-sink-volume ".. audio.default .." "..audio.devices[audio.default].volume.."%")
     end
     vtxt:emit_signal("volumechange") -- emit signal for volumechange
 end)
@@ -378,7 +393,7 @@ msfdimg:connect_signal("button::release",function(_,_,_,b)
     if b == 1 then bkfd_song(true) end
 end)
 
-mst = timer({timeout = 5})
+mst = timer({timeout = 1})
 mst:connect_signal("timeout", function()
     local output = ""
     for line in io.lines(profileConfigPath..".pymusic-song.txt") do
@@ -401,7 +416,7 @@ sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt,systray)
 
 -- App list panel
 -- Apps from top to bottom: Atom, Steam, Discord, LMMS, Blender, Dragonframe, Ardour, Natron, Unreal Engine, Thunar
-appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = screenHeight-((#applist * 58)+92), width = 250, height = (#applist * 58)+52, screen = 1, bg = "#232729ff", fg = "#fefefe"})
+appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = grty-((#applist * 58)+92), width = 250, height = (#applist * 58)+52, screen = 1, bg = "#232729ff", fg = "#fefefe"})
 amanim = false
 
 local applistdata = {}
@@ -465,13 +480,13 @@ launcherOpen = false
 function toggleLauncherImg()
     launcherOpen = not launcherOpen
     if launcherOpen then
-        createAnimObject(appmenu, 3, {x = 0}, "inOutCubic")
-        createAnimObject(launcherimg, 3, {opacity = 0}, "inOutCubic")
-        createAnimObject(launcherimg_open, 3, {opacity = 1}, "inOutCubic")
+        createAnimObject(appmenu, 3, {x = 0}, "outCubic")
+        createAnimObject(launcherimg, 3, {opacity = 0}, "linear")
+        createAnimObject(launcherimg_open, 3, {opacity = 1}, "linear")
     else
-        createAnimObject(appmenu, 3, {x = -250}, "inOutCubic")
-        createAnimObject(launcherimg, 3, {opacity = 1}, "inOutCubic")
-        createAnimObject(launcherimg_open, 3, {opacity = 0}, "inOutCubic")
+        createAnimObject(appmenu, 3, {x = -250}, "inCubic")
+        createAnimObject(launcherimg, 3, {opacity = 1}, "linear")
+        createAnimObject(launcherimg_open, 3, {opacity = 0}, "linear")
     end
 end
 launchermargin:connect_signal("button::press", function(_,_,_,b)
@@ -519,51 +534,6 @@ gamemargin:connect_signal("button::press", function(_,_,_,b)
 end)
 
 
--- Tag underline
-tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = screenWidth-197, y = screenHeight-2, width = 34, height = 2, screen = 1, bg = "#4082f7", fg = "#fefefe"})
-tloldtag = 1
-tlanim = false
-tagline:connect_signal("button::press", function(_,_,_,b)
-    if b == 5 then awful.tag.viewidx(1)
-    elseif b == 4 then awful.tag.viewidx(-1) end
-end)
-
--- Animate tagline back and forth between icons
-function animateTagline(newtagpos)
-    createAnimObject(tagline, 1.5, {x = newtagpos}, "inOutCubic")
-end
-
--- X1: 1723, X2: 1757, X3: 1791, X4: 1827
--- X1: -197, X2: -163, X3: -129, X4: -93
-awful.screen.focused():connect_signal("tag::history::update", function()
-    local curclients = awful.screen.focused().selected_tag:clients()
-    local val = true
-    for _, c in ipairs(curclients) do
-        if c.fullscreen then
-            val = false
-            break
-        end
-    end
-    tagline.visible = val
-    if awful.screen.focused().tags[1].selected then
-        if tagline.visible then -- if visible, commence animation
-            animateTagline(screenWidth-197)
-        else tagline.x = screenWidth-197 end
-    elseif awful.screen.focused().tags[2].selected then
-        if tagline.visible then
-            animateTagline(screenWidth-163)
-        else tagline.x = screenWidth-163 end
-    elseif awful.screen.focused().tags[3].selected then
-        if tagline.visible then
-            animateTagline(screenWidth-129)
-        else tagline.x = screenWidth-129 end
-    elseif awful.screen.focused().tags[4].selected then
-        if tagline.visible then
-            animateTagline(screenWidth-93)
-        else tagline.x = screenWidth-93 end
-    end
-end)
-
 -- Menubar configuration
 menubar.utils.terminal = terminal -- Set the terminal for applications that require it
 -- }}}
@@ -593,90 +563,86 @@ mytextclock_t = awful.tooltip({
     delay_show = 1
 })
 
-lkscrnw = wibox({border_width = 0, ontop = true, visible = false, type = "splash", x = 0, y = 0, width = screenWidth, height = screenHeight, screen = 1, bg = "#0f0", fg = "#fefefe"})
-local profilepic = wibox.widget.imagebox(profileConfigPath.."../../.face")
-profilepic.forced_width = 400
-profilepic.forced_height = 400
-local imgarc = wibox.container.arcchart(profilepic)
-imgarc.forced_width = 450
-imgarc.forced_height = 450
-imgarc.paddings = 0
-imgarc.min_value = 0
-imgarc.max_value = 100
--- Yellow1: #ffd734, Red1: #de232f
-local imgarcy, imgarcr = "#ffd734", "#de232f"
-imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
-imgarc.thickness = 5
-imgarc.start_angle = 0.5*math.pi
-imgarc.bg = "#aaa"
-imgarc.border_width = 0
-imgarc.values = {25, 25, 25, 25}
-local derptxt = wibox.container.background(imgarc, "#44444400")
-derptxt.point = {x = screenWidth/2 - 450/2, y = screenHeight/2 - 450/2}
-local lkimg = wibox.container.background(wibox.layout.manual(derptxt))
-lkscrnw.widget = lkimg
 screenLocked = false
 local inputPin = ""
+-- Yellow1: #ffd734, Red1: #de232f
+local imgarcy, imgarcr = "#ffd734", "#de232f"
 local function lockScreen(lcback)
     if not screenLocked then
         screenLocked = true
-        local rand = math.random() -- prevent previous lock image from being loaded
-        awful.spawn.easy_async_with_shell("scrot -e 'mv $f "..profileConfigPath.."lk.png'; convert "..profileConfigPath.."lk.png -blur 0x12 matte "..profileConfigPath.."lk-img-"..rand..".png", function()
-                lkimg.bgimage = gears.surface.load(profileConfigPath.."lk-img-"..rand..".png")
-                lkimg:emit_signal("widget::redraw_needed")
-                lkscrnw.visible = true
-                lkscrnw:emit_signal("widget::redraw_needed")
-                local acceptInput = true
-                keygrabber.run(function(mod, key, event)
-                    if event == "release" and acceptInput then
-                        if key == "0" or key == "1" or key == "2" or key == "3" or key == "4" or key == "5" or key == "6" or key == "7" or key == "8" or key == "9" then
-                            inputPin = inputPin .. key
-                            if inputPin:len() == 4 then
-                                imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
-                                imgarc:emit_signal("widget::redraw_needed")
-                                if inputPin == screenLockPin then
-                                    inputPin = ""
-                                    lkimg.bgimage = profileConfigPath.."wallpapers/evening.jpg"
-                                    lkimg:emit_signal("widget::redraw_needed")
-                                    lkscrnw.visible = false
-                                    lkscrnw:emit_signal("widget::redraw_needed")
-                                    awful.util.spawn_with_shell("rm "..profileConfigPath.."lk-img-"..rand..".png; rm "..profileConfigPath.."lk.png")
-                                    screenLocked = false
-                                    keygrabber.stop()
-                                else
-                                    acceptInput = false
-                                    imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
-                                    imgarc:emit_signal("widget::redraw_needed")
-                                    local t = timer({timeout = 2})
-                                    t:connect_signal("timeout", function()
-                                        t:stop()
-                                        acceptInput = true
-                                        inputPin = ""
-                                        imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
-                                        imgarc:emit_signal("widget::redraw_needed")
-                                    end)
-                                    t:start()
+        local srand = {}
+        local scmd = "scrot "..profileConfigPath.."lk.png; "
+        for s in screen do -- prevent previous lock image from being loaded
+            table.insert(srand, math.random())
+            srand[(s.index * 2)+1] = math.random()
+            if screenCount > 1 then
+                scmd = scmd .. "convert -crop "..tostring(s.geometry.width).."x"..tostring(s.geometry.height).."+"..tostring((s.index - 1) * s.geometry.width).."+0 "..profileConfigPath.."lk.png "..profileConfigPath.."lk-img-"..tostring(srand[(s.index * 2)+1])..".png; convert "..profileConfigPath.."lk-img-"..tostring(srand[(s.index * 2)+1])..".png -blur 0x12 matte "..profileConfigPath.."lk-img-"..tostring(srand[s.index])..".png; "
+            end
+        end
+        awful.spawn.easy_async_with_shell(scmd, function()
+            local firstscreen = nil
+            for s in screen do
+                s.lkimg.bgimage = profileConfigPath.."lk-img-"..srand[s.index]..".png"
+                s.lkimg:emit_signal("widget::redraw_needed")
+                s.lkscrnw.visible = true
+                s.lkscrnw:emit_signal("widget::redraw_needed")
+                if s.index == 1 then firstscreen = s end
+            end
+            local acceptInput = true
+            keygrabber.run(function(mod, key, event)
+                if event == "release" and acceptInput then
+                    if key == "0" or key == "1" or key == "2" or key == "3" or key == "4" or key == "5" or key == "6" or key == "7" or key == "8" or key == "9" then
+                        inputPin = inputPin .. key
+                        if inputPin:len() == 4 then
+                            firstscreen.imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
+                            firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                            if inputPin == screenLockPin then
+                                inputPin = ""
+                                awful.spawn("rm "..profileConfigPath.."lk.png")
+                                for s in screen do
+                                    s.lkimg.bgimage = profileConfigPath.."wallpapers/morning.png"
+                                    s.lkimg:emit_signal("widget::redraw_needed")
+                                    s.lkscrnw.visible = false
+                                    s.lkscrnw:emit_signal("widget::redraw_needed")
+                                    awful.spawn("rm "..profileConfigPath.."lk-img-"..srand[s.index]..".png")
+                                    awful.spawn("rm "..profileConfigPath.."lk-img-"..srand[(s.index * 2)+1]..".png")
                                 end
+                                screenLocked = false
+                                keygrabber.stop()
+                            else
+                                acceptInput = false
+                                firstscreen.imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcy}
+                                firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                                local t = timer({timeout = 2})
+                                t:connect_signal("timeout", function()
+                                    t:stop()
+                                    acceptInput = true
+                                    inputPin = ""
+                                    firstscreen.imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+                                    firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                                end)
+                                t:start()
                             end
-                        elseif key == "BackSpace" and inputPin:len() > 0 then
-                            inputPin = string.sub(inputPin, 1, inputPin:len()-1)
                         end
-                        if inputPin:len() == 0 then
-                            imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
-                            imgarc:emit_signal("widget::redraw_needed")
-                        elseif inputPin:len() == 1 then
-                            imgarc.colors = {imgarcy, imgarcr, imgarcr, imgarcr}
-                            imgarc:emit_signal("widget::redraw_needed")
-                        elseif inputPin:len() == 2 then
-                            imgarc.colors = {imgarcy, imgarcy, imgarcr, imgarcr}
-                            imgarc:emit_signal("widget::redraw_needed")
-                        elseif inputPin:len() == 3 then
-                            imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcr}
-                            imgarc:emit_signal("widget::redraw_needed")
-                        end
+                    elseif key == "BackSpace" and inputPin:len() > 0 or key == "-" and inputPin:len() > 0 then
+                        inputPin = string.sub(inputPin, 1, inputPin:len()-1)
                     end
-                end)
-                if lcback then lcback() end
+                    if inputPin:len() == 0 then
+                        firstscreen.imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+                        firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                    elseif inputPin:len() == 1 then
+                        firstscreen.imgarc.colors = {imgarcy, imgarcr, imgarcr, imgarcr}
+                        firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                    elseif inputPin:len() == 2 then
+                        firstscreen.imgarc.colors = {imgarcy, imgarcy, imgarcr, imgarcr}
+                        firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                    elseif inputPin:len() == 3 then
+                        firstscreen.imgarc.colors = {imgarcy, imgarcy, imgarcy, imgarcr}
+                        firstscreen.imgarc:emit_signal("widget::redraw_needed")
+                    end
+                end
+            end)
+            if lcback then lcback() end
         end)
     end
 end
@@ -741,10 +707,6 @@ local function wallpaperChanger(s)
     end
 end
 
-local wlpr_timer = timer({timeout = 60})
-wlpr_timer:connect_signal("timeout", function() wallpaperChanger(1) end)
-wlpr_timer:start()
-
 -- Tasklist stuffs
 local function list_update(w, buttons, label, data, objects)
     -- update the widgets, creating them if needed
@@ -794,34 +756,119 @@ local function checkWibar(obj, s)
     --notify_me("checkWibar")
     local curclients = s.clients
     obj.bg = "#00000088"
+    beautiful.prompt_bg = "#00000088"
     for _, c in pairs(curclients) do
         --notify_me("iterating")
         if c.maximized then
             obj.bg = "#000"
+            beautiful.prompt_bg = "#000"
             break
         end
     end
     obj:emit_signal("widget::redraw_needed")
 end
 
+-- Animate tagline back and forth between icons
+local function animateTagline(newtagpos, s)
+    createAnimObject(s.tagline, 1.5, {x = newtagpos}, "inOutCubic")
+end
+
 -- Re-set wallpaper when a screen's geometry changes (e.g. different resolution)
 screen.connect_signal("property::geometry", wallpaperChanger)
 awful.screen.connect_for_each_screen(function(s)
+    local sgeo = s.geometry
+    local index = s.index
+    --naughty.notify({text = tostring("There are "..screenCount.." screens.")})
+    --naughty.notify({text = tostring(s.index..": ("..sgeo.x..", "..sgeo.y.."), "..sgeo.width.."x"..sgeo.height)})
     -- Wallpaper
     wallpaperChanger(s)
+    s.wlpr_timer = timer({timeout = 60})
+    s.wlpr_timer:connect_signal("timeout", function() wallpaperChanger(s) end)
+    s.wlpr_timer:start()
 
     -- Each screen has its own tag table.
     tags[s] = awful.tag(tags.names, s, tags.layout)
 
+    -- Each screen has its own tag underline
+    local taglineoffset = {index == screenCount and -197 or -140, index == screenCount and -163 or -106, index == screenCount and -129 or -72, index == screenCount and -93 or -36}
+    local xoffset = index * sgeo.width
+    s.tagline = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = xoffset+taglineoffset[1], y = sgeo.height-2, width = 34, height = 2, screen = s, bg = "#4082f7", fg = "#fefefe"})
+    s.tagline:connect_signal("button::press", function(_,_,_,b)
+        if b == 5 then awful.tag.viewidx(1)
+        elseif b == 4 then awful.tag.viewidx(-1) end
+    end)
+    -- X1: 1723, X2: 1757, X3: 1791, X4: 1827
+    s:connect_signal("tag::history::update", function()
+        local curclients = s.selected_tag:clients()
+        local val = true
+        for _, c in ipairs(curclients) do
+            if c.fullscreen then
+                val = false
+                break
+            end
+        end
+        s.tagline.visible = val
+        s.tagline:emit_signal("widget::redraw_needed")
+        if s.tags[1].selected then
+            if s.tagline.visible then -- if visible, commence animation
+                animateTagline(xoffset+taglineoffset[1], s)
+            else s.tagline.x = xoffset+taglineoffset[1] end
+        elseif s.tags[2].selected then
+            if s.tagline.visible then
+                animateTagline(xoffset+taglineoffset[2], s)
+            else s.tagline.x = xoffset+taglineoffset[2] end
+        elseif s.tags[3].selected then
+            if s.tagline.visible then
+                animateTagline(xoffset+taglineoffset[3], s)
+            else s.tagline.x = xoffset+taglineoffset[3] end
+        elseif s.tags[4].selected then
+            if s.tagline.visible then
+                animateTagline(xoffset+taglineoffset[4], s)
+            else s.tagline.x = xoffset+taglineoffset[4] end
+        end
+    end)
+
+    -- Create a lockscreen wibox for each screen
+    s.lkscrnw = wibox({border_width = 0, ontop = true, visible = false, type = "splash", x = 0, y = 0, width = sgeo.width, height = sgeo.height, screen = s, bg = "#0f0", fg = "#fefefe"})
+    if index == 1 then
+        local profilepic = wibox.widget.imagebox(profileConfigPath.."../../.face")
+        profilepic.forced_width = 400
+        profilepic.forced_height = 400
+        s.imgarc = wibox.container.arcchart(profilepic)
+        s.imgarc.forced_width = 450
+        s.imgarc.forced_height = 450
+        s.imgarc.paddings = 0
+        s.imgarc.min_value = 0
+        s.imgarc.max_value = 100
+        s.imgarc.colors = {imgarcr, imgarcr, imgarcr, imgarcr}
+        s.imgarc.thickness = 5
+        s.imgarc.start_angle = 0.5*math.pi
+        s.imgarc.bg = "#aaa"
+        s.imgarc.border_width = 0
+        s.imgarc.values = {25, 25, 25, 25}
+        local imgarc_center = wibox.container.background(s.imgarc)
+        imgarc_center.point = {x = sgeo.width/2 - 450/2, y = sgeo.height/2 - 450/2}
+        s.lkimg = wibox.container.background(wibox.layout.manual(imgarc_center))
+        s.lkscrnw.widget = s.lkimg
+    elseif index == 2 then
+        local lkclk = wibox.widget.textclock(" %H:%M ")
+        lkclk.font = "Roboto 50"
+        local lkclk_center = wibox.container.background(lkclk)
+        lkclk_center.point = {x = sgeo.width/2 - 150/2, y = sgeo.height/2 - 100/2}
+        s.lkimg = wibox.container.background(wibox.layout.manual(lkclk_center))
+        s.lkscrnw.widget = s.lkimg
+    else
+        s.lkimg = wibox.container.background(wibox.widget.textbox("else screen code"))
+        s.lkscrnw.widget = s.lkimg
+    end
+
     -- Create a promptbox for each screen
     s.mypromptbox = awful.widget.prompt()
-    -- Create a taglist widget
-    s.mytaglist = awful.widget.taglist(s, awful.widget.taglist.filter.all, taglist_buttons)
 
-    -- Create a tasklist widget
+    -- Create a tasklist widget for each screen
     s.mytasklist = awful.widget.tasklist(s, awful.widget.tasklist.filter.currenttags, tasklist_buttons, nil, list_update, wibox.layout.fixed.horizontal())
 
-    -- Create the wibox #31373a00
+    -- Create a wibox for each screen #31373a00
     s.mywibox = awful.wibar({ position = "bottom", screen = s, height = 40, bg = "#00000088" })
     -- Transparent on no maximized clients; opaque on 1 or more maximized clients
     --checkWibar(s.mywibox, s)
@@ -832,14 +879,7 @@ awful.screen.connect_for_each_screen(function(s)
         layout = wibox.layout.align.horizontal,
         { -- Left widgets
             layout = wibox.layout.fixed.horizontal,
-            {
-                {
-                    launcherimg,
-                    launcherimg_open,
-                    layout = wibox.layout.stack
-                },
-                layout = launchermargin
-            },
+            index == 1 and {{launcherimg, launcherimg_open, layout = wibox.layout.stack}, layout = launchermargin} or nil,
             --s.mytaglist,
             s.mypromptbox,
         },
@@ -862,7 +902,7 @@ awful.screen.connect_for_each_screen(function(s)
                 mygametag,
                 layout = gamemargin
             },
-            syscont
+            index == screenCount and syscont or nil
         },
     }
 end)
@@ -916,6 +956,7 @@ globalkeys = gears.table.join(
     awful.key({}, "#172", togglePlayPause, {description = "Play/pause music", group = "music"}),
     awful.key({}, "#171", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
     awful.key({}, "#173", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
+    awful.key({}, "#174", function() toggleSound() end, {description = "Switch audio output", group = "music"}),
     awful.key({modkey}, "e", toggleLauncherImg, {description = "open app menu", group = "awesome"}),
     awful.key({modkey}, "w", toggleSysmenu, {description = "open sys menu", group = "awesome"}),
 
@@ -986,7 +1027,28 @@ clientkeys = gears.table.join(
             c.maximized = not c.maximized
             c:raise()
         end ,
-        {description = "maximize", group = "client"})
+        {description = "maximize", group = "client"}),
+    awful.key({ modkey, "Shift" }, "Left", function(c)
+        local curtag = c:tags()[1].index
+        local maxtags = #tags.names
+        if curtag > 1 then
+            curtag = curtag-1
+        else
+            curtag = maxtags
+        end
+        c:move_to_tag(awful.screen.focused().tags[curtag])
+
+    end, {description = "move client -1 tag", group = "client"}),
+    awful.key({ modkey, "Shift" }, "Right", function(c)
+        local curtag = c:tags()[1].index
+        local maxtags = #tags.names
+        if curtag < maxtags then
+            curtag = curtag+1
+        else
+            curtag = 1
+        end
+        c:move_to_tag(awful.screen.focused().tags[curtag])
+    end, {description = "move client +1 tag", group = "client"})
 )
 
 -- Bind all key numbers to tags.
@@ -1038,7 +1100,7 @@ awful.rules.rules = {
                      raise = true,
                      keys = clientkeys,
                      buttons = clientbuttons,
-                     screen = awful.screen.preferred,
+                     screen = screen.primary,
                      placement = awful.placement.no_overlap+awful.placement.no_offscreen
      }
     },
@@ -1070,28 +1132,33 @@ awful.rules.rules = {
       }, properties = { floating = true }},
 
     -- CHROME tag
-    {rule = {class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
-    {rule = {class = "Firefox"}, properties = {screen = 1, tag = awful.screen.focused().tags[1]}},
+    {rule = {class = "Google-chrome"}, properties = {screen = "DP-2", tag = "CHROME"}},
+    {rule = {class = "Firefox"}, properties = {screen = "DP-2", tag = "CHROME"}},
     -- PRODUCTIVITY tag
-    {rule = {class = "Atom"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Lmms"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Blender"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Dragonframe"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Ardour-5.8.0"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "Natron"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
-    {rule = {class = "UE4Editor"}, properties = {screen = 1, tag = awful.screen.focused().tags[2]}},
+    {rule = {class = "Atom"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Lmms"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Blender"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Dragonframe"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Ardour-5.10.0"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Ardour"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "qjackctl"}, properties = {screen = "DP-2", tag = "PRODUCTIVITY"}},
+    {rule = {class = "xjadeo"}, properties = {screen = "DP-2", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Natron"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "UE4Editor"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Thunar"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     -- SOCIAL tag
-    {rule = {class = "discord"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
-    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = 1, tag = awful.screen.focused().tags[3]}},
+    {rule = {class = "discord"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
+    {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
+    {rule = {class = "Keybase"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
     -- GAMES tag
-    {rule = {class = "Steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4], maximized = true}},
-    {rule = {class = "steam"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}}, -- Big Picture mode
-    {rule = {name = "SUPERHOT"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
-    {rule = {class = "Terraria.bin.x86"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
-    {rule = {class = "hl2_linux", name = "Garry's Mod - OpenGL"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
-    {rule = {class = "hl2_linux", name = "Portal - OpenGL"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
-    {rule = {class = "portal2_linux"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
-    {rule = {class = "RocketLeague"}, properties = {screen = 1, tag = awful.screen.focused().tags[4]}},
+    {rule = {class = "Steam"}, properties = {screen = "DP-4", tag = "GAMES"}},
+    {rule = {class = "steam"}, properties = {screen = "DP-4", tag = "GAMES"}}, -- Big Picture mode
+    {rule = {name = "SUPERHOT"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "Terraria.bin.x86"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "hl2_linux", name = "Garry's Mod - OpenGL"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "hl2_linux", name = "Portal - OpenGL"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "portal2_linux"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "RocketLeague"}, properties = {screen = "DP-2", tag = "GAMES"}},
 
     -- Add titlebars to normal clients and dialogs
     { rule_any = {type = { "normal", "dialog" }
@@ -1126,23 +1193,33 @@ client.connect_signal("manage", function (c)
 end)
 
 client.connect_signal("unmanage", function (c)
-    local curclients = awful.screen.focused().selected_tag:clients()
+    local s = c.screen
+    local curclients = s.selected_tag:clients()
     local val = true
-    for _, c in ipairs(curclients) do
-        if c.fullscreen then
+    for _, cl in ipairs(curclients) do
+        if cl.fullscreen then
             val = false
             break
         end
     end
-    tagline.visible = val
-    checkWibar(c.screen.mywibox, c.screen)
+    s.tagline.visible = val
+    checkWibar(s.mywibox, s)
 end)
 
 client.connect_signal("property::fullscreen", function(c)
+    local s = c.screen
     if c.fullscreen then
-        tagline.visible = false
+        s.tagline.visible = false
     else
-        tagline.visible = true
+        local curclients = s.selected_tag:clients()
+        local val = true
+        for _, cl in ipairs(curclients) do
+            if cl.fullscreen then
+                val = false
+                break
+            end
+        end
+        s.tagline.visible = val
     end
 end)
 
