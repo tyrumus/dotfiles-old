@@ -1,47 +1,36 @@
-import socket
-import sys
-import pygame
-import subprocess
-import time
+import sys, socket, time, signal
+from subprocess import Popen
 from threading import Thread
 from random import shuffle
-from os import listdir
-from os import getpid
+from os import listdir, kill
 from os.path import isfile, join, expanduser
 
-pygame.init()
-pygame.mixer.init()
-
 MAX_LENGTH = 4096
+ffproc = None
 isPlaying = False
 isPaused = False
 isRunning = False
-musicVolume = 0.25 # between 0 and 1
-musicPath = "".join([expanduser("~"), "/Music/wmplaylist/"])
-pidPath = "".join([expanduser("~"), "/.config/awesome/.pymusic-serverpid.txt"])
-songPath = "".join([expanduser("~"), "/.config/awesome/.pymusic-song.txt"])
-procpid = getpid()
+musicVolume = 0.5 # between 0 and 1
+musicPath = expanduser("~/Music/wmplaylist/")
+songPath = expanduser("~/.config/awesome/.pymusic-song.txt")
 currentsong = 0
+HOST = "127.0.0.1"
+PORT = 10000
+serversocket = None
 
-# read pidPath and run kill pid
-if isfile(pidPath):
-    f = open(pidPath, 'r')
-    subprocess.call(["kill", "-9", f.read()])
-    f.close()
+# establish connection with existing instance
+s = socket.socket()
+try:
+    s.connect((HOST, PORT))
+    s.send("kill")
+    s.close()
+except:
+    pass
 
-# write procpid to file
-f = open(pidPath, 'w')
-f.truncate()
-f.write(str(procpid))
-f.close()
-
-# Write "Nothing is playing." to music file
-f = open(songPath, 'w')
+f = open(songPath, "w")
 f.truncate()
 f.write("Nothing is playing.")
 f.close()
-
-time.sleep(0.5)
 
 songs = [f for f in listdir(musicPath) if isfile(join(musicPath, f))]
 songslen = len(songs)
@@ -49,94 +38,107 @@ shuffle(songs)
 
 def write_file_song(name):
     global songPath
-    f = open(songPath, 'w')
+    f = open(songPath, "w")
     f.truncate()
     f.write(name[:-4])
     f.close()
 
 def handle(clientsocket):
+    global ffproc
     global isPlaying
     global isPaused
     global songs
     global songslen
     global currentsong
     global isRunning
+    global serversocket
+    global musicVolume
     while 1:
         buf = clientsocket.recv(MAX_LENGTH)
-        if buf == '': return
-        if buf == 'play':
+        if buf == "": return
+        if buf == "kill":
+            if isPlaying == True:
+                kill(ffproc.pid, signal.SIGTERM)
+            serversocket.shutdown(socket.SHUT_RDWR)
+            serversocket.close()
+            isRunning = False
+            sys.exit(0)
+        elif buf == "play":
             if isPlaying == False:
                 isPlaying = True
-                print 'playing...'
+                print "playing..."
                 if isPaused == False: # first cycle
-                    pygame.mixer.music.load(musicPath + songs[currentsong])
-                    pygame.mixer.music.set_volume(musicVolume)
-                    pygame.mixer.music.play()
+                    # spawn new ffplay process
+                    ffproc = Popen(["ffplay", "-nodisp", "-nostats", "-autoexit", "-af", str("volume=" + str(musicVolume)), str(musicPath + songs[currentsong])])
+                    # write song name to file
                     write_file_song(songs[currentsong])
                 else:
-                    pygame.mixer.music.unpause()
-        elif buf == 'pause':
+                    # SIGCONT ffplay proc
+                    kill(ffproc.pid, signal.SIGCONT)
+        elif buf == "pause":
             if isPlaying == True:
                 isPlaying = False
                 isPaused = True
-                print 'pausing...'
-                pygame.mixer.music.pause()
-        elif buf == 'next':
-            print 'next song'
-            isPlaying = True
+                # SIGSTOP ffplay proc
+                kill(ffproc.pid, signal.SIGSTOP)
+                print "paused."
+        elif buf == "next":
+            print "next song"
+            if isPlaying == True:
+                # SIGTERM current ffplay proc
+                kill(ffproc.pid, signal.SIGTERM)
+            isPlaying = False
             currentsong += 1
             if currentsong == songslen:
                 currentsong = 0
-            pygame.mixer.music.load(musicPath + songs[currentsong])
-            pygame.mixer.music.set_volume(musicVolume)
-            pygame.mixer.music.play()
+            # spawn new ffplay proc
+            ffproc = Popen(["ffplay", "-nodisp", "-nostats", "-autoexit", "-af", str("volume=" + str(musicVolume)), str(musicPath + songs[currentsong])])
+            # write song name to file
             write_file_song(songs[currentsong])
-        elif buf == 'back':
-            print 'previous song'
             isPlaying = True
+        elif buf == "back":
+            print "previous song"
+            if isPlaying == True:
+                # SIGTERM current ffplay proc
+                kill(ffproc.pid, signal.SIGTERM)
+            isPlaying = False
             currentsong -= 1
             if currentsong == -1:
-                currentsong = songslen-1
-            pygame.mixer.music.load(musicPath + songs[currentsong])
-            pygame.mixer.music.set_volume(musicVolume)
-            pygame.mixer.music.play()
+                currentsong = songslen
+            # spawn new ffplay proc
+            ffproc = Popen(["ffplay", "-nodisp", "-nostats", "-autoexit", "-af", str("volume=" + str(musicVolume)), str(musicPath + songs[currentsong])])
+            # write song name to file
             write_file_song(songs[currentsong])
-        elif buf == 'kill':
-            print 'killing...'
-            pygame.mixer.music.stop()
-            isRunning = False
-            sys.exit(0)
+            isPlaying = True
 
 
 def checkMusicPlayback():
-    global songslen
+    global ffproc
     global songs
+    global songslen
     global currentsong
+    global musicVolume
     global isPlaying
     global isRunning
     while 1:
         if isRunning == False:
             sys.exit(0)
-        while pygame.mixer.music.get_busy():
-            pygame.time.Clock().tick(10)
         if isPlaying == True:
-            currentsong += 1
-            if currentsong == songslen:
-                shuffle(songs)
-                currentsong = 0
-            pygame.mixer.music.load(musicPath + songs[currentsong])
-            pygame.mixer.music.set_volume(musicVolume)
-            pygame.mixer.music.play()
-            write_file_song(songs[currentsong])
-        pygame.time.Clock().tick(10)
+            # check if current ffplay's popen.returncode ~= None
+            if ffproc.poll() != None:
+                currentsong += 1
+                if currentsong == songslen:
+                    shuffle(songs)
+                    currentsong = 0
+                # play new song
+                ffproc = Popen(["ffplay", "-nodisp", "-nostats", "-autoexit", "-af", str("volume=" + str(musicVolume)), str(musicPath + songs[currentsong])])
+                write_file_song(songs[currentsong])
+        time.sleep(0.1)
 
 mp = Thread(target=checkMusicPlayback)
 
 serversocket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-PORT = 10000
-HOST = '127.0.0.1'
-
+time.sleep(0.5)
 print "opening socket..."
 serversocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 serversocket.bind((HOST, PORT))
