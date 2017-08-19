@@ -2,15 +2,17 @@
 
 Here's the files that enable AwesomeWM to work how I want on my machine.
 
-Dependencies: AwesomeWM, Python, pygame, Pulseaudio
+Dependencies: AwesomeWM, Python, ffplay, Pulseaudio
 
 3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).
 
 ## Setup/Installation
 
-- Install AwesomeWM 4.1
+- Install AwesomeWM 4.2
 - Clone this repository into `~/.config/awesome/`
-- Edit the `profileConfigPath` variable in `rc.lua` and `themes/default/theme.lua` to match the location of your `~/.config/awesome`
+- Edit `themes/default/theme.lua` to match the location of your `~/.config/awesome`
+- Make changes to the audio input setup to ensure that the music player will work with your audio setup
+- Change the `screenLockPin` to something other than the default **1234**
 
 Right-click on the desktop and click Hotkeys to see a list of all of the keybinds.
 
