@@ -12,9 +12,9 @@ local themes_path = gfs.get_themes_dir()
 local theme = {}
 profileConfigPath = gfs.get_configuration_dir()
 
-theme.font          = "Roboto 9"
+theme.font          = "Roboto 10"
 
-theme.bg_normal     = "#66666644"
+theme.bg_normal     = "#31373a"
 theme.window_bg_normal = "#3d4346"
 theme.window_bg_focus = "#31373a"
 theme.bg_focus      = "#4082f7"
@@ -60,6 +60,21 @@ theme.taglist_squares_unsel = theme_assets.taglist_squares_unsel(
 -- Tasklist stuffs
 theme.tasklist_plain_task_name = true
 theme.tasklist_disable_task_name = true
+
+-- Hotkeys dialog
+theme.hotkeys_bg = "#31373a"
+theme.hotkeys_fg = "#aaa"
+theme.hotkeys_border_width = 1
+theme.hotkeys_border_color = "#aaaaaa44"
+theme.hotkeys_modifiers_fg = "#777"
+theme.hotkeys_label_bg = "#000"
+theme.hotkeys_label_fg = "#fff"
+theme.hotkeys_font = "Roboto 9"
+theme.hotkeys_description_font = "Roboto 9"
+
+-- Prompt dialog
+theme.prompt_fg = "#aaa"
+theme.prompt_bg = "#000"
 
 -- Variables set for theming notifications:
 -- notification_font
