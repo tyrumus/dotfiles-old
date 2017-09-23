@@ -45,7 +45,7 @@ local audio = {
     }
 }
 local autostartapps = {
-    "xrandr --output DP-2 --mode 1920x1080 --rate 144.00 --primary --output DP-4 --right-of DP-2 --mode 1920x1080 --rate 144.00",
+    --"xrandr --output DP-2 --mode 1920x1080 --rate 144.00 --primary --output DP-4 --right-of DP-2 --mode 1920x1080 --rate 144.00",
     "pactl set-sink-volume 1 "..audio.devices[1].volume.."%",
     "pactl set-sink-volume 2 "..audio.devices[2].volume.."%",
     profileConfigPath.."set-output "..audio.default,
@@ -55,6 +55,7 @@ local autostartapps = {
 -- Every App has: Name, icon path, and execute path
 local applist = {
     {name = "Atom",icon = profileConfigPath.."newui/atom.png",exec = "/usr/share/atom/atom"},
+    {name = "Eclipse",icon = profileConfigPath.."newui/eclipse.png",exec = "/home/legostax/eclipse/eclipse"},
     {name = "Steam",icon = profileConfigPath.."newui/steam.png",exec = "/usr/bin/steam"},
     {name = "Discord",icon = profileConfigPath.."newui/discord.png",exec = "/usr/share/discord/Discord"},
     {name = "Keybase",icon = profileConfigPath.."newui/keybase.png",exec = "/usr/bin/run_keybase"},
@@ -177,7 +178,7 @@ wibox_bedtime.widget = wibox.layout.fixed.vertical(captiontb,btcntdwntb)
 
 pofftime:connect_signal("timeout", function()
     if btcntdwn <= 0 then
-        awful.util.spawn("systemctl poweroff")
+        awful.spawn("systemctl poweroff")
         pofftime:stop()
     else
         btcntdwn = btcntdwn-1
@@ -196,7 +197,7 @@ bedtime:connect_signal("timeout", function()
         end
     end
 end)
-bedtime:start()
+--bedtime:start()
 
 -- Tween.lua testing
 local tween = require("tween")
@@ -251,7 +252,7 @@ end)
 --twtimer:start()
 
 -- Sysmenu
-local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = grtx, y = grty-190, width = 240, height = 150, screen = screen:count(), bg = "#232729",  fg = "#fefefe"})
+local sysmenu = wibox({border_width = 0, ontop = true, visible = true, x = grtx, y = grty-158, width = 240, height = 118, screen = screen:count(), bg = "#232729",  fg = "#fefefe"})
 sysmenu.open = false
 
 function toggleSysmenu()
@@ -309,7 +310,7 @@ function toggleSound()
         audio.default = 1 -- switch to headset
         animateSwitch(true)
     end
-    awful.util.spawn(profileConfigPath.."set-output "..audio.default)
+    awful.spawn(profileConfigPath.."set-output "..audio.default)
     vsliderListen = false
     createAnimObject(vslider, 4, {value = audio.devices[audio.default].volume}, "inOutCubic", function()
         vsliderListen = true
@@ -329,7 +330,7 @@ local slcont = wibox.layout.fixed.horizontal(swmarg,slmarg,vtxtmarg)
 vslider:connect_signal("property::value", function()
     if not audio.devices[audio.default].muted and vsliderListen then
         audio.devices[audio.default].volume = vslider.value
-        awful.util.spawn("pactl set-sink-volume ".. audio.default .." "..audio.devices[audio.default].volume.."%")
+        awful.spawn("pactl set-sink-volume ".. audio.default .." "..audio.devices[audio.default].volume.."%")
     end
     vtxt:emit_signal("volumechange") -- emit signal for volumechange
 end)
@@ -362,18 +363,18 @@ end
 function togglePlayPause()
     isPlaying = not isPlaying
     if isPlaying then -- run play command
-        awful.util.spawn("python "..profileConfigPath.."music-client.py play")
+        awful.spawn("mpc play")
     else -- run pause command
-        awful.util.spawn("python "..profileConfigPath.."music-client.py pause")
+        awful.spawn("mpc pause")
     end
     animatePlayPause()
 end
 
 function bkfd_song(gofd)
     if gofd then -- skip forward
-        awful.util.spawn("python "..profileConfigPath.."music-client.py next")
+        awful.spawn("mpc next")
     else -- skip backward
-        awful.util.spawn("python "..profileConfigPath.."music-client.py back")
+        awful.spawn("mpc prev")
     end
     if not isPlaying then
         isPlaying = true
@@ -395,14 +396,12 @@ end)
 
 mst = timer({timeout = 1})
 mst:connect_signal("timeout", function()
-    local output = ""
-    for line in io.lines(profileConfigPath..".pymusic-song.txt") do
-        output = line
-    end
-    if output:len() > 20 then
-        output = output:sub(1,20).."..."
-    end
-    mssongtxt.markup = "<span color='#aaa'>"..output.."</span>"
+    awful.spawn.easy_async("mpc current", function(stdout)
+        if stdout:len() > 20 then
+            stdout = stdout:sub(1,20).."..."
+        end
+        mssongtxt.markup = "<span color='#aaa'>"..stdout.."</span>"
+    end)
 end)
 mst:start()
 
@@ -410,13 +409,13 @@ local mscont = wibox.layout.fixed.horizontal(wibox.container.margin(msbkimg,50),
 
 
 
-systray = wibox.widget.systray()
-systray:set_base_size(32)
-sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt,systray)
+tray = wibox.widget.systray()
+tray:set_base_size(32)
+sysmenu.widget = wibox.layout.fixed.vertical(slcont,mscont,mssongtxt)
 
 -- App list panel
 -- Apps from top to bottom: Atom, Steam, Discord, LMMS, Blender, Dragonframe, Ardour, Natron, Unreal Engine, Thunar
-appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = grty-((#applist * 58)+92), width = 250, height = (#applist * 58)+52, screen = 1, bg = "#232729ff", fg = "#fefefe"})
+appmenu = wibox({border_width = 0, ontop = true, visible = true, type = "splash", x = -250, y = grty-((#applist * 58)+124), width = 250, height = (#applist * 58)+84, screen = 1, bg = "#232729ff", fg = "#fefefe"})
 amanim = false
 
 local applistdata = {}
@@ -428,7 +427,7 @@ for i = 1,#applist do
     applistdata[i] = wibox.container.background(cont)
     applistdata[i]:connect_signal("button::press", function(_, _, _, b)
         if b == 1 then
-            awful.util.spawn(ref.exec)
+            awful.spawn(ref.exec)
             appmenu:emit_signal("close-appmenu")
         end
     end)
@@ -443,15 +442,15 @@ for i = 1,#applist do
 end
 
 local utillist = {
-    [1] = {icon = profileConfigPath.."newui/lock2.png",exec = function() awful.util.spawn("dm-tool lock") end},
+    [1] = {icon = profileConfigPath.."newui/lock2.png",exec = function() awful.spawn("dm-tool lock") end},
     [2] = {icon = profileConfigPath.."newui/logout2.png",exec = awesome.quit},
-    [3] = {icon = profileConfigPath.."newui/reboot2.png",exec = function() awful.util.spawn("systemctl reboot") end},
-    [4] = {icon = profileConfigPath.."newui/poweroff2.png",exec = function() awful.util.spawn("systemctl poweroff") end}
+    [3] = {icon = profileConfigPath.."newui/reboot2.png",exec = function() awful.spawn("systemctl reboot") end},
+    [4] = {icon = profileConfigPath.."newui/poweroff2.png",exec = function() awful.spawn("systemctl poweroff") end}
 }
 local utillistdata = {}
 for i = 1, #utillist do
     local ref = utillist[i]
-    utillistdata[i] = wibox.container.margin(wibox.widget.imagebox(ref.icon, false), 30, 0, 10)
+    utillistdata[i] = wibox.container.margin(wibox.widget.imagebox(ref.icon, false), 15, 15, 10, 10)
     utillistdata[i].opacity = 0.5
     utillistdata[i]:connect_signal("button::press", function(_, _, _, b)
         if b == 1 then
@@ -460,12 +459,15 @@ for i = 1, #utillist do
         end
     end)
     utillistdata[i]:connect_signal("mouse::enter", function()
-        createAnimObject(utillistdata[i], 1, {opacity = 0.75}, "inOutCubic")
+        utillistdata[i].opacity = 0.75
+        utillistdata[i]:emit_signal("widget::redraw_needed")
     end)
     utillistdata[i]:connect_signal("mouse::leave", function()
-        createAnimObject(utillistdata[i], 1, {opacity = 0.5}, "inOutCubic")
+        utillistdata[i].opacity = 0.5
+        utillistdata[i]:emit_signal("widget::redraw_needed")
     end)
 end
+applistdata[#applistdata + 1] = tray
 applistdata[#applistdata + 1] = wibox.layout.fixed.horizontal(unpack(utillistdata))
 local amlayout = wibox.layout.fixed.vertical(unpack(applistdata))
 appmenu.widget = amlayout
@@ -886,6 +888,7 @@ awful.screen.connect_for_each_screen(function(s)
         s.mytasklist, -- Middle widget
         { -- Right widgets
             layout = wibox.layout.fixed.horizontal,
+            index == screenCount and tray or nil,
             {
                 mychrometag,
                 layout = chromemargin
@@ -920,10 +923,11 @@ root.buttons(awful.util.table.join(
 globalkeys = gears.table.join(
     awful.key({modkey}, "l", function() lockScreen() end, {description = "lockscreen", group = "awesome"}),
     awful.key({}, "Print", function() awful.util.spawn_with_shell("scrot -e 'mv $f ~/Screenshots/'") notify_me("Screenshot saved.") end, {description = "take screenshot", group = "awesome"}),
-    awful.key({"Control", modkey}, "Delete", function() awful.util.spawn("xfce4-taskmanager") end, {description = "open task manager", group = "awesome"}),
+    awful.key({"Control", modkey}, "Delete", function() awful.spawn("xfce4-taskmanager") end, {description = "open task manager", group = "awesome"}),
+    awful.key({"Control", "Shift"}, "Escape", function() awful.spawn("xfce4-taskmanager") end, {description = "open task manager", group = "awesome"}),
     awful.key({}, "#123", function()
         if audio.devices[audio.default].volume < 100 then
-            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ +1%")
+            awful.spawn("pactl set-sink-volume @DEFAULT_SINK@ +1%")
             audio.devices[audio.default].volume = audio.devices[audio.default].volume+1
             audio.devices[audio.default].muted = false
             vslider.value = audio.devices[audio.default].volume
@@ -932,7 +936,7 @@ globalkeys = gears.table.join(
     end, {description = "+1% volume", group = "awesome"}),
     awful.key({}, "#122", function()
         if audio.devices[audio.default].volume > 0 then
-            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ -1%")
+            awful.spawn("pactl set-sink-volume @DEFAULT_SINK@ -1%")
             audio.devices[audio.default].volume = audio.devices[audio.default].volume-1
             vslider.value = audio.devices[audio.default].volume
             myvolume:emit_signal("volumechange")
@@ -941,18 +945,18 @@ globalkeys = gears.table.join(
     awful.key({}, "#121", function()
         if audio.devices[audio.default].muted then
             audio.devices[audio.default].muted = false
-            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ "..audio.devices[audio.default].volume.."%")
+            awful.spawn("pactl set-sink-volume @DEFAULT_SINK@ "..audio.devices[audio.default].volume.."%")
             vslider.value = audio.devices[audio.default].volume
             myvolume:emit_signal("volumechange")
         else
             audio.devices[audio.default].muted = true
-            awful.util.spawn("pactl set-sink-volume @DEFAULT_SINK@ 0")
+            awful.spawn("pactl set-sink-volume @DEFAULT_SINK@ 0")
             vslider.value = 0
             myvolume:emit_signal("volumechange")
         end
     end, {description = "toggle volume mute", group = "awesome"}),
-    awful.key({modkey}, "F1", function() awful.util.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
-    awful.key({modkey}, "F2", function() lockScreen(function() awful.util.spawn("systemctl suspend") end) end, {description = "sleep/suspend", group = "awesome"}),
+    awful.key({modkey}, "F1", function() awful.spawn("gnome-calculator") end, {description = "open calculator", group = "awesome"}),
+    awful.key({modkey}, "F2", function() lockScreen(function() awful.spawn("systemctl suspend") end) end, {description = "sleep/suspend", group = "awesome"}),
     awful.key({}, "#172", togglePlayPause, {description = "Play/pause music", group = "music"}),
     awful.key({}, "#171", function() bkfd_song(true) end, {description = "Forward 1 song", group = "music"}),
     awful.key({}, "#173", function() bkfd_song(false) end, {description = "Back 1 song", group = "music"}),
@@ -1002,14 +1006,14 @@ globalkeys = gears.table.join(
               {description = "run prompt", group = "launcher"}),
 
     -- App opening shortcuts
-    awful.key({ modkey, "Shift" }, "m", function() awful.util.spawn("thunar") end, {description = "open file manager", group = "awesome"}),
+    awful.key({ modkey, "Shift" }, "m", function() awful.spawn("thunar") end, {description = "open file manager", group = "awesome"}),
     -- TAG-BASED KEYBINDINGS
     -- Open Chrome on CHROME tag
     awful.key({ modkey }, "n", function()
         local t = awful.screen.focused().selected_tag
-        if t.index == 1 then awful.util.spawn("google-chrome")
-        elseif t.index == 3 then awful.util.spawn("/usr/share/discord/Discord")
-        elseif t.index == 4 then awful.util.spawn("/usr/bin/steam") end
+        if t.index == 1 then awful.spawn("google-chrome")
+        elseif t.index == 3 then awful.spawn("/usr/share/discord/Discord")
+        elseif t.index == 4 then awful.spawn("/usr/bin/steam") end
     end, {description = "open default tag program", group = "tag"})
 )
 
@@ -1136,6 +1140,7 @@ awful.rules.rules = {
     {rule = {class = "Firefox"}, properties = {screen = "DP-2", tag = "CHROME"}},
     -- PRODUCTIVITY tag
     {rule = {class = "Atom"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Eclipse"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     {rule = {class = "Lmms"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     {rule = {class = "Blender"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     {rule = {class = "Dragonframe"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
@@ -1146,10 +1151,11 @@ awful.rules.rules = {
     {rule = {class = "Natron"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     {rule = {class = "UE4Editor"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     {rule = {class = "Thunar"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
+    {rule = {class = "Gimp"}, properties = {screen = "DP-4", tag = "PRODUCTIVITY"}},
     -- SOCIAL tag
     {rule = {class = "discord"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
     {rule = {instance = "crx_nckgahadagoaajjgafhacjanaoiihapd", class = "Google-chrome"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
-    {rule = {class = "Keybase"}, properties = {screen = "DP-4", tag = "SOCIAL"}},
+    {rule = {class = "Keybase"}, properties = {screen = "DP-2", tag = "SOCIAL"}},
     -- GAMES tag
     {rule = {class = "Steam"}, properties = {screen = "DP-4", tag = "GAMES"}},
     {rule = {class = "steam"}, properties = {screen = "DP-4", tag = "GAMES"}}, -- Big Picture mode
@@ -1159,6 +1165,8 @@ awful.rules.rules = {
     {rule = {class = "hl2_linux", name = "Portal - OpenGL"}, properties = {screen = "DP-2", tag = "GAMES"}},
     {rule = {class = "portal2_linux"}, properties = {screen = "DP-2", tag = "GAMES"}},
     {rule = {class = "RocketLeague"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "DirtRally"}, properties = {screen = "DP-2", tag = "GAMES"}},
+    {rule = {class = "Hacknet.bin.x86_64"}, properties = {screen = "DP-2", tag = "GAMES"}},
 
     -- Add titlebars to normal clients and dialogs
     { rule_any = {type = { "normal", "dialog" }
@@ -1245,21 +1253,6 @@ client.connect_signal("request::titlebars", function(c)
         titlebaricon = awful.titlebar.widget.iconwidget(c)
         titlebaricon.forced_height = 20
         titlebaricon.forced_width = 20
-
-        --[[local maximized = wibox.widget.imagebox(profileConfigPath.."themes/default/titlebar/maximized_focus_active3.png",false)
-        c:connect_signal("focus",function()
-            maximized.image = "themes/default/titlebar/maximized_focus_active3.png"
-        end)
-        c:connect_signal("unfocus",function()
-            maximized.image = "themes/default/titlebar/normal.png"
-        end)
-        c:connect_signal("mouse::enter",function()
-            maximized.image = "themes/default/titlebar/maximized_focus_active2.png"
-        end)
-        c:connect_signal("mouse::leave",function()
-            maximized.image = "themes/default/titlebar/maximized_focus_active3.png"
-        end)]]--
-
 
         titlebartext = wibox.container.margin(awful.titlebar.widget.titlewidget(c),5)
         titlebartext.align = "left"
