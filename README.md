@@ -2,7 +2,7 @@
 
 Here's the files that enable AwesomeWM to work how I want on my machine.  [Check it out on Reddit!](https://www.reddit.com/r/unixporn/comments/6drt6c/awesomewm_noobs_paradise/)
 
-Dependencies: AwesomeWM, Python, ffplay, Pulseaudio
+Dependencies: AwesomeWM, mpd, Pulseaudio
 
 3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).
 
@@ -15,8 +15,6 @@ Dependencies: AwesomeWM, Python, ffplay, Pulseaudio
 - Change the `screenLockPin` to something other than the default **1234**
 
 Right-click on the desktop and click Hotkeys to see a list of all of the keybinds.
-
-The music player pulls songs from `~/Music/wmplaylist/`
 
 Ensure your `~/.face` is at least 400x400 in size for the lockscreen to look right.
 
