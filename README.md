@@ -12,7 +12,8 @@ Dependencies: AwesomeWM, mpd, Pulseaudio
 - Custom integrated lockscreen
 - Music (MPD) integration. I quit developing the custom python music server because it used a lot of weird hacks that didn't work 100% of the time.
 - Scalable app menu entries
-- Other aesthetically pleasing things.
+- Other aesthetically pleasing things
+- Quite a few keyboard shortcuts
 
 ## Setup/Installation
 
