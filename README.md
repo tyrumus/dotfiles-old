@@ -4,7 +4,15 @@ Here's the files that enable AwesomeWM to work how I want on my machine.  [Check
 
 Dependencies: AwesomeWM, mpd, Pulseaudio
 
-3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).
+3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).  I probably don't have the rights to distribute those other 3 wallpapers.  But, who cares?  Not anyone who's looking for dotfiles.
+
+## Features
+- Multi-monitor support
+- Animations via `tween.lua`
+- Custom integrated lockscreen
+- Music (MPD) integration. I quit developing the custom python music server because it used a lot of weird hacks that didn't work 100% of the time.
+- Scalable app menu entries
+- Other aesthetically pleasing things.
 
 ## Setup/Installation
 
