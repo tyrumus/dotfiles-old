@@ -14,6 +14,7 @@ Dependencies: AwesomeWM, mpd, Pulseaudio
 - Scalable app menu entries
 - Other aesthetically pleasing things
 - Quite a few keyboard shortcuts
+- [Check out some screenies](http://imgur.com/gallery/E9dQ0)
 
 ## Setup/Installation
 
