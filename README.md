@@ -29,3 +29,11 @@ Right-click on the desktop and click Hotkeys to see a list of all of the keybind
 Ensure your `~/.face` is at least 400x400 in size for the lockscreen to look right.
 
 Poke around for other things to tweak to your liking. Have fun!
+
+## TODO
+
+- Fix tagline animation glitch
+- Disable naughty on lockscreen
+- Fix wibox being transparent when it's supposed to be opaque, and vice versa
+- Make the top drag region to maximize, and remove the bottom drag region
+- Fix setting audio output
