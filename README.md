@@ -2,7 +2,7 @@
 
 This v2.0 branch will be developed later in 2018. I have a lot of projects that have deadlines right now. Plus, I need to get lots of ideas to make an entirely new experience that integrates better, provides more relevant information, etc.
 
-Here's the files that enable AwesomeWM to work how I want on my machine.  [Check it out on Reddit!](https://www.reddit.com/r/unixporn/comments/6drt6c/awesomewm_noobs_paradise/)
+In the meantime, check out the planned features below, or [head back to the master stable branch](https://github.com/legostax/dotfiles)
 
 Dependencies: AwesomeWM, mpd, Pulseaudio
 
