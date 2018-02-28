@@ -19,5 +19,6 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Conky for LAN info
 - Either rofi launcher or custom compact launcher
 - Quite a few keyboard shortcuts
+- Volume indicator appears in (middle or corner?) of screen when media volume buttons are pressed. Also show current song and audio visualizer.
 
 I want this new setup to be very feature-filled
