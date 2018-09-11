@@ -1,6 +1,6 @@
 # LegoStax's Dotfiles
 
-This v2.0 branch will be developed later in 2018. I have a lot of projects that have deadlines right now. Plus, I need to get lots of ideas to make an entirely new experience that integrates better, provides more relevant information, etc.
+This v2.0 branch will be developed later in December 2018 (got pushed back due to school). I have a lot of projects that have deadlines right now. Plus, I need to get lots of ideas to make an entirely new experience that integrates better, provides more relevant information, etc.
 
 In the meantime, check out the planned features below, or [head back to the master stable branch](https://github.com/legostax/dotfiles)
 
@@ -20,5 +20,8 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Either rofi launcher or custom compact launcher
 - Quite a few keyboard shortcuts
 - Volume indicator appears in (middle or corner?) of screen when media volume buttons are pressed. Also show current song and audio visualizer.
+- Calendar widget
+- Music player expands on click to show Artist, Song, Album, Year, and album art
+- Dropdown notes or something that can show/hide effortlessly
 
-I want this new setup to be very feature-filled
+I want this new setup to be very feature-filled.
