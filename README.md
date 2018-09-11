@@ -34,10 +34,11 @@ Poke around for other things to tweak to your liking. Have fun!
 
 ## TODO
 
-- ~~Fix tagline animation glitch~~
-- ~~Disable naughty on lockscreen~~
-- ~~Fix wibox being transparent when it's supposed to be opaque, and vice versa~~
-- ~~Make the top drag region to maximize, and remove the bottom drag region~~
-- ~~Fix setting audio output~~
+- Fix tagline animation glitch where it doesn't always move with the workspace
+- Disable naughty on lockscreen
+- Fix wibox being transparent when it's supposed to be opaque, and vice versa
+- Make the top drag region to maximize, and remove the bottom drag region
+- Theme the drag regions so that they aren't disgusting generic red boxes
+- Fix setting audio output
 
-This stuff will be fixed in v2.0 coming this summer.
+This stuff will be fixed in v2.0.
