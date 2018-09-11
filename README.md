@@ -27,5 +27,6 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Easy theming (maybe change theme with wallpaper?)
 - Compton shadows and transparency
 - Animated wallpaper support
+- hiDPI support
 
 I want this new setup to be very feature-filled.
