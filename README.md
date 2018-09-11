@@ -23,5 +23,9 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Calendar widget
 - Music player expands on click to show Artist, Song, Album, Year, and album art
 - Dropdown notes or something that can show/hide effortlessly
+- Wallpaper changes based on time of day
+- Easy theming (maybe change theme with wallpaper?)
+- Compton shadows and transparency
+- Animated wallpaper support
 
 I want this new setup to be very feature-filled.
