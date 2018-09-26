@@ -30,6 +30,6 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - [Animated wallpaper support](https://www.reddit.com/r/unixporn/comments/9abhbf/oc_wallpaper_opengl_animated_wallpaper/)
 - hiDPI support
 - [LightDM Webkit Greeter theme to complement this rice](https://www.reddit.com/r/unixporn/comments/84wypv/lightdmwebkit2greeter_ricing_the_greeter/)
-- Night mode blue light filter
+- [Night mode blue light filter](https://askubuntu.com/questions/482373/how-do-i-install-redshift-in-ubuntu)
 
 I want this new setup to be very feature-filled.
