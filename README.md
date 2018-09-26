@@ -13,6 +13,8 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Music (MPD) integration into the main bar
 - Set the default audio output in the main bar
 - Client border colors change based on application class name
+- [Rounded borders](https://www.reddit.com/r/unixporn/comments/9j24u9/plasma_minimal_theme_based_on_arc/)
+- [Dim unfocused clients](https://www.reddit.com/r/unixporn/comments/9j24u9/plasma_minimal_theme_based_on_arc/)
 - Tiling (most clients will be maximized anyway)
 - Useless gaps
 - [Conky for system info like CPU, RAM, LAN, etc.](https://imgur.com/a/ahHL9)
@@ -28,5 +30,6 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - [Animated wallpaper support](https://www.reddit.com/r/unixporn/comments/9abhbf/oc_wallpaper_opengl_animated_wallpaper/)
 - hiDPI support
 - [LightDM Webkit Greeter theme to complement this rice](https://www.reddit.com/r/unixporn/comments/84wypv/lightdmwebkit2greeter_ricing_the_greeter/)
+- Night mode blue light filter
 
 I want this new setup to be very feature-filled.
