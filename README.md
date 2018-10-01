@@ -20,6 +20,7 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - [Conky for system info like CPU, RAM, LAN, etc.](https://imgur.com/a/ahHL9)
 - [Either rofi launcher or custom compact launcher](https://www.reddit.com/r/unixporn/comments/4f8fbq/compiz_rofi_with_compiz_blur/)
 - Quite a few keyboard shortcuts
+- Use [glyph icons](http://nerdfonts.com/) instead of images
 - Volume indicator appears in (middle or corner?) of screen when media volume buttons are pressed. Also show current song and audio visualizer.
 - [Calendar widget](https://awesomewm.org/doc/api/classes/awful.widget.calendar_popup.html)
 - [Music player expands on click to show Artist, Song, Album, Year, and album art](https://www.reddit.com/r/unixporn/comments/93qcu9/openbox_train_of_thought/)
