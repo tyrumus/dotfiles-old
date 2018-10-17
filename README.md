@@ -10,7 +10,7 @@ Dependencies: AwesomeWM, mpd, PulseAudio
 - Multi-monitor support
 - Animations via `tween.lua`
 - Custom integrated lockscreen
-- Music (MPD) integration into the main bar
+- Music (MPD) and Spotify integration into the main bar
 - Set the default audio output in the main bar
 - Client border colors change based on application class name
 - [Rounded borders](https://www.reddit.com/r/unixporn/comments/9j24u9/plasma_minimal_theme_based_on_arc/)
