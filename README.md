@@ -6,7 +6,7 @@ In the meantime, check out the planned features below, or [head back to the mast
 
 Dependencies: AwesomeWM, mpd, PulseAudio
 
-## Features
+## Planned Features
 - Multi-monitor support
 - Animations via `tween.lua`
 - Custom integrated lockscreen
