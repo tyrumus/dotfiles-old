@@ -1,6 +1,6 @@
 # LegoStax's Dotfiles
 
-This v2.0 branch will be developed later in December 2018 (got pushed back due to school). I have a lot of projects that have deadlines right now. Plus, I need to get lots of ideas to make an entirely new experience that integrates better, provides more relevant information, etc.
+This v2.0 branch will be developed later in June 2019 (got pushed back due to school). I have a lot of projects that have deadlines right now. Plus, I need to get lots of ideas to make an entirely new experience that integrates better, provides more relevant information, etc.
 
 In the meantime, check out the planned features below, checkout more details on the [Issues](https://github.com/legostax/dotfiles/issues) page, or [head back to the master stable branch](https://github.com/legostax/dotfiles)
 
