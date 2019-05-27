@@ -6,6 +6,9 @@ In the meantime, check out the planned features below, checkout more details on 
 
 Dependencies: AwesomeWM, mpd, PulseAudio
 
+## Important notes
+- If you have any issues with changing audio outputs, [check out the wiki tutorial.](https://github.com/legostax/dotfiles/wiki/Fix-PulseAudio)
+
 ## Planned Features
 - Multi-monitor support
 - Animations via `tween.lua`
