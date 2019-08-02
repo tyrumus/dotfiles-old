@@ -4,7 +4,7 @@ This v2.0 branch will be developed later in June/July 2019 (got pushed back due 
 
 In the meantime, check out the planned features below, checkout more details on the [Issues](https://github.com/legostax/dotfiles/issues) page, or [head back to the master stable branch](https://github.com/legostax/dotfiles)
 
-Dependencies: AwesomeWM, mpd, PulseAudio
+Dependencies: [AwesomeWM](https://github.com/awesomeWM/awesome), [mpd](https://github.com/MusicPlayerDaemon/MPD), PulseAudio
 
 ## Important notes
 - If you have any issues with changing audio outputs, [check out the wiki tutorial.](https://github.com/legostax/dotfiles/wiki/Fix-PulseAudio)
