@@ -22,6 +22,7 @@ Dependencies: [AwesomeWM](https://github.com/awesomeWM/awesome), [mpd](https://g
 - Useless gaps
 - [Conky for system info like CPU, RAM, LAN, etc.](https://imgur.com/a/ahHL9)
 - [Either rofi launcher or custom compact launcher](https://www.reddit.com/r/unixporn/comments/4f8fbq/compiz_rofi_with_compiz_blur/)
+- [Launcher should have internet search engine prefix. Prefix can be autofilled with a keyboard shortcut](https://www.reddit.com/r/unixporn/comments/gftc5o/oc_realtime_websearch_suggestions_for_rofi_extras/)
 - Quite a few keyboard shortcuts
 - Use [glyph icons](http://nerdfonts.com/) instead of images
 - Volume indicator appears in (middle or corner?) of screen when media volume buttons are pressed. Also show current song and audio visualizer.
@@ -32,8 +33,10 @@ Dependencies: [AwesomeWM](https://github.com/awesomeWM/awesome), [mpd](https://g
 - Easy theming (maybe change theme with wallpaper?)
 - [Compton shadows and translucency](https://www.reddit.com/r/unixporn/comments/9ggq94/kde_plasma_for_the_love_of_all_that_is_translucent/)
 - [Animated wallpaper support](https://www.reddit.com/r/unixporn/comments/9abhbf/oc_wallpaper_opengl_animated_wallpaper/)
+- [or alternatively, dynamic wallpaper like v1.0](https://www.reddit.com/r/unixporn/comments/gc0npc/oc_dynamicwallpaper_added_new_wallpapers_kde/)
 - hiDPI support
 - [LightDM Webkit Greeter theme to complement this rice](https://www.reddit.com/r/unixporn/comments/84wypv/lightdmwebkit2greeter_ricing_the_greeter/)
 - [Night mode blue light filter](https://askubuntu.com/questions/482373/how-do-i-install-redshift-in-ubuntu)
+- [Plymouth boot animation](https://www.reddit.com/r/unixporn/comments/gglodg/oc_archiso_second_version_of_my_custom_arch_linux/)
 
 I want this new setup to be very feature-filled.
