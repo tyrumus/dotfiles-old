@@ -1,12 +1,12 @@
 # LegoStax's Dotfiles
 
+[My new dotfiles running Sway](https://github.com/legostax/dotfiles)
+
 Here's the files that enable [AwesomeWM](https://github.com/awesomeWM/awesome) to work how I want on my machine.  [Check it out on Reddit!](https://www.reddit.com/r/unixporn/comments/6drt6c/awesomewm_noobs_paradise/)
 
 Dependencies: AwesomeWM, mpd, Pulseaudio
 
 3/4 Wallpapers were found browsing the interwebs.  The Daft Punk one was made by one of my [buddies](https://twitter.com/VoltivTV).  I probably don't have the rights to distribute those other 3 wallpapers.  But, who cares?  Not anyone who's looking for dotfiles.
-
-Check out the [planned features here for a new rice here.](https://github.com/legostax/dotfiles/tree/v1.0)
 
 ## Features
 - Multi-monitor support
